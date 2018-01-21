@@ -51,6 +51,14 @@
   provider: ACCELERATED-IT Accelerated IT Services GmbH
   reverse: ns1.accelerated.de
 - country: DE
+  ip: 84.200.69.80
+  provider: ACCELERATED - DNS.WATCH
+  reverse: resolver1.ihgip.net
+- country: DE
+  ip: 84.200.70.40
+  provider: ACCELERATED - DNS.WATCH
+  reverse: resolver2.ihgip.net
+- country: DE
   ip: 212.66.128.129
   provider: ACCOM NetAachen GmbH
   reverse: arc02.accom.a1-net.de
