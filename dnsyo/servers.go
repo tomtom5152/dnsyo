@@ -139,6 +139,7 @@ func (s *Server) Test() (ok bool, err error) {
 
 	addr := s.Ip + ":53"
 	c := new(dns.Client)
+	var lastErr error
 
 	for _, q := range tests {
 		msg := new(dns.Msg)
@@ -149,11 +150,24 @@ func (s *Server) Test() (ok bool, err error) {
 
 		resp, _, err := c.Exchange(msg, addr)
 		if err != nil {
-			return false, err
+			if err, ok := err.(net.Error); ok && err.Timeout() {
+				// instant fail
+				return false, errors.New("TIMEOUT")
+			}
+			if lastErr != nil && err.Error() == lastErr.Error() {
+				return false, err
+			}
+			lastErr = err
+			continue
 		}
 
 		if resp == nil {
-			return false, errors.New("server did not return a result")
+			err =  errors.New("server did not return a result")
+			if lastErr != nil && err.Error() == lastErr.Error() {
+				return false, err
+			}
+			lastErr = err
+			continue
 		}
 	}
 

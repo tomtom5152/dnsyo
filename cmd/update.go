@@ -20,20 +20,22 @@ import (
 	"github.com/azer/logger"
 	"sync"
 	"os"
+	"fmt"
 )
 
 var updateLog = logger.New("update")
 
-func Update(source, target string) error{
+func Update(source, target string) error {
 	toTest, err := ServersFromFile(source)
 	if err != nil {
 		updateLog.Error(err.Error())
 		return err
 	}
 
-	updateLog.Info("Testing %d nameservers", len(toTest))
+	fmt.Printf("Testing %d nameservers\n", len(toTest))
 
 	var wg sync.WaitGroup
+	var mutex sync.Mutex
 	var working ServerList
 	for _, s := range toTest {
 		wg.Add(1)
@@ -41,7 +43,9 @@ func Update(source, target string) error{
 			defer wg.Done()
 			updateLog.Info("Testing " + s.Reverse)
 			if ok, err := s.Test(); ok {
+				mutex.Lock()
 				working = append(working, s)
+				mutex.Unlock()
 			} else {
 				updateLog.Info("Disabling %s: %s", s.Reverse, err)
 			}
@@ -54,6 +58,8 @@ func Update(source, target string) error{
 		updateLog.Error(err.Error())
 		return err
 	}
+
+	fmt.Printf("Updated server list, %d active, %d disabled\n", len(working), len(toTest)-len(working))
 
 	return nil
 }
