@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	testYaml = "config/test-resolver-list.yml"
+	testYaml = "../config/test-resolver-list.yml"
 )
 
 func TestServerListFromCSVUrl(t *testing.T) {
 	Convey("server list is loaded from the file", t, func() {
 		sl, err := ServersFromFile(testYaml)
 		So(err, ShouldBeNil)
-		So(sl, ShouldHaveLength, 8)
+		So(sl, ShouldHaveLength, 9)
 
 		Convey("check a few common results are in there", func() {
 			googleA := Server{
@@ -37,6 +37,73 @@ func TestServerListFromCSVUrl(t *testing.T) {
 
 			So(sl, ShouldNotContain, l3)
 		})
+	})
+}
+
+func TestServerList_FilterCountry(t *testing.T) {
+	sl, _ := ServersFromFile(testYaml)
+	if len(sl) != 9 {
+		t.Error("incorred number of servers, double check test list")
+	}
+
+	Convey("filtering to GB results in only one server", t, func() {
+		gb, err := sl.FilterCountry("GB")
+		So(err, ShouldBeNil)
+		So(gb, ShouldHaveLength, 1)
+
+		Convey("that should be the postec entry", func() {
+			s := Server{
+				Ip:       "128.243.103.175",
+				Country:  "GB",
+				Provider: "!UNI-NOTTINGHAM - TEC PA & Lighting",
+				Reverse:  "postec.nottingham.ac.uk",
+			}
+
+			So(gb[0], ShouldResemble, s)
+		})
+	})
+
+	Convey("filtering to a country not in the list yields an error", t, func() {
+		_, err := sl.FilterCountry("NOTME")
+		So(err, ShouldBeError)
+	})
+}
+
+func TestServerList_NRandom(t *testing.T) {
+	sl, _ := ServersFromFile(testYaml)
+	if len(sl) != 9 {
+		t.Error("incorred number of servers, double check test list")
+	}
+
+	Convey("selecting a random number of servers", t, func() {
+		rl, err := sl.NRandom(6)
+		So(err, ShouldBeNil)
+
+		So(rl, ShouldHaveLength, 6)
+	})
+
+	Convey("selecting too many servers produces an error", t, func() {
+		_, err := sl.NRandom(10)
+		So(err, ShouldBeError)
+	})
+}
+
+func TestServerList_Query(t *testing.T) {
+	sl, _ := ServersFromFile(testYaml)
+	if len(sl) != 9 {
+		t.Error("incorred number of servers, double check test list")
+	}
+
+	Convey("perform a query that will work and we can compare the results", t, func() {
+		result := sl.Query("example.com", dns.TypeA)
+		So(result, ShouldNotBeNil)
+
+		// every server should be polled
+		So(result.SuccessCount + result.ErrorCount, ShouldEqual, len(sl))
+
+		// with out test list we should have 8 success and 1 failure
+		So(result.SuccessCount, ShouldEqual, 8)
+		So(result.ErrorCount, ShouldEqual, 1)
 	})
 }
 
@@ -75,7 +142,7 @@ func TestServer_Test(t *testing.T) {
 				Ip:       "128.243.103.175",
 				Country:  "GB",
 				Provider: "!UNI-NOTTINGHAM - TEC PA & Lighting",
-				Reverse:  "s.nottingham.ac.uk",
+				Reverse:  "postec.nottingham.ac.uk",
 			}
 
 			ok, err := s.Test()
@@ -99,7 +166,7 @@ func TestServer_Lookup(t *testing.T) {
 			results, err := s.Lookup("google.com", dns.TypeNS)
 			So(err, ShouldBeNil)
 			So(results, ShouldHaveLength, 4)
-			So(results, ShouldContain, "google.com.	21599	IN	NS	ns1.google.com.")
+			So(results, ShouldContain, "ns1.google.com.")
 		})
 
 		Convey("dne.itsg.host A does not exist, check the failure", func() {
@@ -122,7 +189,7 @@ func TestServer_Lookup(t *testing.T) {
 			Ip:       "128.243.103.175",
 			Country:  "GB",
 			Provider: "!UNI-NOTTINGHAM - TEC PA & Lighting",
-			Reverse:  "s.nottingham.ac.uk",
+			Reverse:  "postec.nottingham.ac.uk",
 		}
 
 		Convey("itsg.host NS as these are unlikely to change", func() {

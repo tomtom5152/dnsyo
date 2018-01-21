@@ -32,3 +32,7 @@
   ip: 208.67.222.220
   provider: OPENDNS - OpenDNS, LLC
   reverse: resolver3.opendns.com
+- ip: 128.243.103.175
+  country: GB
+  provider: "!UNI-NOTTINGHAM - TEC PA & Lighting"
+  reverse: postec.nottingham.ac.uk
