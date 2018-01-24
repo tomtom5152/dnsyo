@@ -113,12 +113,12 @@ func init() {
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
 	rootCmd.PersistentFlags().IntVarP(&requestRate, "rate", "r", 500, "Number of requests per second")
+	rootCmd.PersistentFlags().StringVarP(&resolverfile, "resolverfile", "", "~/.dnsyo-resolver-list.yml", "Location of the local yaml resolvers file")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Flags().IntVarP(&servers, "servers", "q", 500, "Number of servers to query (0=ALL)")
-	rootCmd.Flags().StringVarP(&resolverfile, "resolverfile", "", "config/resolver-list.yml", "Location of the local yaml resolvers file")
 	rootCmd.Flags().StringVarP(&country, "country", "c", "", "Query servers by two letter country code")
 	rootCmd.Flags().StringVarP(&requestType, "type", "", "A", "Type of query to perform")
 }

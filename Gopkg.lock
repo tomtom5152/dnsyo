@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/gocarina/gocsv"
+  packages = ["."]
+  revision = "45cbb9cde54ea46d800c4fcd1a686949ac6d87a3"
+
+[[projects]]
+  branch = "master"
   name = "github.com/gopherjs/gopherjs"
   packages = ["js"]
   revision = "178c176a91fe05e3e6c58fa5c989bad19e6cdcb3"
@@ -82,6 +88,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a08b16c959e206a08e946490d61cf3cdcf3feb0a06ebc91159db28790fce9128"
+  inputs-digest = "073b33a17d378ed99b3a71176c72d04a6e15cb9dd70c70657fe0ebd5c834bb2b"
   solver-name = "gps-cdcl"
   solver-version = 1

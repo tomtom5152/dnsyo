@@ -22,10 +22,15 @@ import (
 	"os"
 	"fmt"
 	"time"
+
+)
+
+var (
+	csvUrl string
 )
 
 func Update(source, target string) error {
-	toTest, err := ServersFromFile(source)
+	toTest, err := ServersFromCSVURL(source)
 	if err != nil {
 		log.Fatal(err.Error())
 		return err
@@ -42,14 +47,18 @@ func Update(source, target string) error {
 		go func(s Server) {
 			defer wg.Done()
 			<-limiter
-			log.Debug("Testing " + s.Reverse)
+			log.Debug("Testing " + s.Name)
 			if ok, err := s.Test(); ok {
 				mutex.Lock()
 				working = append(working, s)
 				mutex.Unlock()
 			} else {
+				sName := s.Name
+				if sName == "" {
+					sName = s.Ip
+				}
 				log.WithFields(log.Fields{
-					"server": s.Reverse,
+					"server": sName,
 					"reason": err,
 				}).Info("Disabling server")
 			}
@@ -70,13 +79,12 @@ func Update(source, target string) error {
 
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
-	Use:   "update <source> <destination>",
+	Use:   "update",
 	Short: "Update the list of resolvers",
 	Long: `Performs a test query on all of the configured name servers to see if they are working and saves the output
 to the list of active servers.`,
-	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Update(args[0], args[1]); err != nil {
+		if err := Update(csvUrl, resolverfile); err != nil {
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -95,5 +103,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// updateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	updateCmd.Flags().StringP("csvurl", "u", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
+	updateCmd.Flags().StringVar(&csvUrl, "csvurl", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
 }

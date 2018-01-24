@@ -13,17 +13,51 @@ import (
 	"sync"
 	"strings"
 	"syscall"
+	"net/http"
+	"github.com/gocarina/gocsv"
 )
 
 const (
 	answerResult = 4
+	reliabilityThreshold = 0.97
 )
 
 type Server struct {
-	Ip       string
-	Country  string
-	Provider string
-	Reverse  string
+	Ip      string
+	Country string
+	Name    string
+}
+
+type csvNameserver struct {
+	// IPAddress is the ipv4 address of the server
+	IPAddress string `csv:"ip"`
+
+	// Name is the hostname of the server if the server has a hostname
+	Name string `csv:"name"`
+
+	// Country is the two-letter ISO 3166-1 alpha-2 code of the country
+	Country string `csv:"country_id"`
+
+	// City specifies the city that the server is hosted on
+	City string `csv:"city"`
+
+	// Version is the software version of the dns daemon that the server is using
+	Version string `csv:"version"`
+
+	// Error is the error that the server returned. Probably will be empty if you use the valid nameserver dataset
+	Error string `csv:"error"`
+
+	// DNSSec is a boolean to indicate if the server supports DNSSec or not
+	DNSSec bool `csv:"dnssec"`
+
+	// Realiability is a normalized value - from 0.0 - 1.0 - to indicate how stable the server is
+	Reliability float64 `csv:"reliability"`
+
+	// CheckedAt is a timestamp to indicate the date that the server was last checked
+	CheckedAt time.Time `csv:"checked_at"`
+
+	// CreatedAt is a timestamp to indicate when the server was inserted in the database
+	CreatedAt time.Time `csv:"created_at"`
 }
 
 type ServerList []Server
@@ -32,7 +66,7 @@ type Results struct {
 	SuccessCount, ErrorCount int
 	Success                  map[string]int
 	Errors                   map[string]int
-	mutex sync.Mutex
+	mutex                    sync.Mutex
 }
 
 func ServersFromFile(filename string) (sl ServerList, err error) {
@@ -48,6 +82,49 @@ func ServersFromFile(filename string) (sl ServerList, err error) {
 	err = yaml.Unmarshal(data, &sl)
 	if err != nil {
 		return nil, err
+	}
+
+	return
+}
+
+func ServersFromCSVURL(url string) (sl ServerList, err error) {
+	csvFile, err := http.Get(url)
+	if err != nil {
+		return
+	}
+
+	// sometimes the file can be truncated and have an incomplete final line.
+	// run a basic check to ensure it isn't going to error later.
+	bytes, err := ioutil.ReadAll(csvFile.Body)
+	if err != nil {
+		return
+	}
+
+	rows := strings.Split(string(bytes), "\n")
+	nCols := strings.Count(rows[0],",")
+	if strings.Count(rows[len(rows)-1], ",") < nCols {
+		rows = rows[:len(rows)-2]
+	}
+	data := strings.Join(rows, "\n")
+
+	var servers []csvNameserver
+	err = gocsv.Unmarshal(strings.NewReader(data), &servers)
+	if err != nil {
+		return
+	}
+
+	for _, ns := range servers {
+		if ip := net.ParseIP(ns.IPAddress); ip.To4() == nil {
+			continue // we can't process IPv6 yet
+		}
+		if ns.Reliability >= reliabilityThreshold {
+			s := Server{
+				Ip: ns.IPAddress,
+				Country: ns.Country,
+				Name: ns.Name,
+			}
+			sl = append(sl, s)
+		}
 	}
 
 	return
@@ -70,7 +147,7 @@ func (sl *ServerList) DumpToFile(filename string) (err error) {
 	return
 }
 
-func (sl *ServerList) FilterCountry(country string) (fl ServerList, err error){
+func (sl *ServerList) FilterCountry(country string) (fl ServerList, err error) {
 	for _, s := range *sl {
 		if s.Country == country {
 			fl = append(fl, s)
@@ -165,7 +242,7 @@ func (s *Server) Test() (ok bool, err error) {
 		}
 
 		if resp == nil {
-			err =  errors.New("server did not return a result")
+			err = errors.New("server did not return a result")
 			if lastErr != nil && err.Error() == lastErr.Error() {
 				return false, err
 			}

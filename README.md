@@ -64,6 +64,10 @@ For basic installation run
 
     go get github.com/tomtom5152/dnsyo
 
+When first installed you will need to run the update command to populate the resolver list.
+
+    dnsyo update
+
 ## Usage
 
 For more information on the flags run `dnsyo help`

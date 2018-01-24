@@ -21,8 +21,7 @@ func TestServerListFromCSVUrl(t *testing.T) {
 			googleA := Server{
 				Ip:       "8.8.8.8",
 				Country:  "US",
-				Provider: "GOOGLE - Google Inc.",
-				Reverse:  "google-public-dns-a.google.com",
+				Name:  "google-public-dns-a.google.com",
 			}
 
 			So(sl, ShouldContain, googleA)
@@ -32,8 +31,7 @@ func TestServerListFromCSVUrl(t *testing.T) {
 			l3 := Server{
 				Country:  "GB",
 				Ip:       "193.240.163.34",
-				Provider: "LVLT-3549 - Level 3 Communications, Inc.,US",
-				Reverse:  "193.240.163.34",
+				Name:  "193.240.163.34",
 			}
 
 			So(sl, ShouldNotContain, l3)
@@ -56,8 +54,7 @@ func TestServerList_FilterCountry(t *testing.T) {
 			s := Server{
 				Ip:       "128.243.103.175",
 				Country:  "GB",
-				Provider: "!UNI-NOTTINGHAM - TEC PA & Lighting",
-				Reverse:  "postec.nottingham.ac.uk",
+				Name:  "!postec.nottingham.ac.uk",
 			}
 
 			So(gb[0], ShouldResemble, s)
@@ -163,8 +160,7 @@ func TestServer_Lookup(t *testing.T) {
 		s := Server{
 			Ip:       "8.8.8.8",
 			Country:  "US",
-			Provider: "GOOGLE - Google Inc.",
-			Reverse:  "google-public-dns-a.google.com",
+			Name:  "google-public-dns-a.google.com",
 		}
 
 		Convey("google.com NS as these are unlikely to change", func() {
@@ -209,8 +205,7 @@ func TestServer_Lookup(t *testing.T) {
 		s := Server{
 			Ip:       "127.0.0.1",
 			Country:  "NA",
-			Provider: "LOCALHOST",
-			Reverse:  "localhost",
+			Name:  "localhost",
 		}
 
 		Convey("google.com NS as these are unlikely to change", func() {
