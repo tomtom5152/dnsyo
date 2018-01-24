@@ -83,7 +83,7 @@ var rootCmd = &cobra.Command{
  - RESULTS
 I asked %d servers for %s records related to %s,
 %d responded with records and %d gave errors
-Here are the results;`, servers, requestType, args[0], result.SuccessCount, result.ErrorCount)
+Here are the results;`, len(sl), requestType, args[0], result.SuccessCount, result.ErrorCount)
 		fmt.Print("\n\n\n")
 
 		if result.SuccessCount > 0{
@@ -123,7 +123,7 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.Flags().IntVarP(&servers, "servers", "q", 500, "Number of servers to query")
+	rootCmd.Flags().IntVarP(&servers, "servers", "q", 500, "Number of servers to query (0=ALL)")
 	rootCmd.Flags().StringVarP(&resolverfile, "resolverfile", "", "config/resolver-list.yml", "Location of the local yaml resolvers file")
 	rootCmd.Flags().StringVarP(&country, "country", "c", "", "Query servers by two letter country code")
 	rootCmd.Flags().StringVarP(&requestType, "type", "", "A", "Type of query to perform")
