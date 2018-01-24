@@ -2,37 +2,28 @@
 
 - country: US
   ip: 8.8.8.8
-  provider: GOOGLE - Google Inc.
-  reverse: google-public-dns-a.google.com
+  name: google-public-dns-a.google.com
 - country: US
   ip: 8.8.4.4
-  provider: GOOGLE - Google Inc.
-  reverse: google-public-dns-b.google.com
+  name: google-public-dns-b.google.com
 - country: US
   ip: 208.67.222.222
-  provider: OPENDNS - OpenDNS, LLC
-  reverse: resolver1.opendns.com
+  name: resolver1.opendns.com
 - country: US
   ip: 208.67.220.220
-  provider: OPENDNS - OpenDNS, LLC
-  reverse: resolver2.opendns.com
+  name: resolver2.opendns.com
 - country: US
   ip: 208.67.220.123
-  provider: OPENDNS - OpenDNS, LLC
-  reverse: resolver2-fs.opendns.com
+  name: resolver2-fs.opendns.com
 - country: US
   ip: 208.67.220.222
-  provider: OPENDNS - OpenDNS, LLC
-  reverse: resolver4.opendns.com
+  name: resolver4.opendns.com
 - country: US
   ip: 208.67.222.123
-  provider: OPENDNS - OpenDNS, LLC
-  reverse: resolver1-fs.opendns.com
+  name: resolver1-fs.opendns.com
 - country: US
   ip: 208.67.222.220
-  provider: OPENDNS - OpenDNS, LLC
-  reverse: resolver3.opendns.com
+  name: resolver3.opendns.com
 - ip: 128.243.103.175
   country: GB
-  provider: "!UNI-NOTTINGHAM - TEC PA & Lighting"
-  reverse: postec.nottingham.ac.uk
+  name: "!postec.nottingham.ac.uk"

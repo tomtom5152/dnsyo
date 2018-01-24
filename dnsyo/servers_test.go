@@ -11,7 +11,7 @@ const (
 	testYaml = "../config/test-resolver-list.yml"
 )
 
-func TestServerListFromCSVUrl(t *testing.T) {
+func TestServerListFromFile(t *testing.T) {
 	Convey("server list is loaded from the file", t, func() {
 		sl, err := ServersFromFile(testYaml)
 		So(err, ShouldBeNil)
@@ -115,8 +115,7 @@ func TestServer_Test(t *testing.T) {
 			s := Server{
 				Ip:       "8.8.8.8",
 				Country:  "US",
-				Provider: "GOOGLE - Google Inc.",
-				Reverse:  "google-public-dns-a.google.com",
+				Name:  "google-public-dns-a.google.com",
 			}
 
 			ok, err := s.Test()
@@ -128,8 +127,7 @@ func TestServer_Test(t *testing.T) {
 			s := Server{
 				Ip:       "84.200.69.80",
 				Country:  "DE",
-				Provider: "ACCELERATED - Google Inc.",
-				Reverse:  "resolver1.dns.watch",
+				Name:  "resolver1.dns.watch",
 			}
 
 			ok, err := s.Test()
@@ -143,8 +141,7 @@ func TestServer_Test(t *testing.T) {
 			s := Server{
 				Ip:       "128.243.103.175",
 				Country:  "GB",
-				Provider: "!UNI-NOTTINGHAM - TEC PA & Lighting",
-				Reverse:  "postec.nottingham.ac.uk",
+				Name:  "!postec.nottingham.ac.uk",
 			}
 
 			ok, err := s.Test()
@@ -189,8 +186,7 @@ func TestServer_Lookup(t *testing.T) {
 		s := Server{
 			Ip:       "128.243.103.175",
 			Country:  "GB",
-			Provider: "!UNI-NOTTINGHAM - TEC PA & Lighting",
-			Reverse:  "postec.nottingham.ac.uk",
+			Name:  "!postec.nottingham.ac.uk",
 		}
 
 		Convey("itsg.host NS as these are unlikely to change", func() {

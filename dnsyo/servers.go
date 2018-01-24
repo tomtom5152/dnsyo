@@ -1,7 +1,6 @@
 package dnsyo
 
 import (
-	"os"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"github.com/miekg/dns"
@@ -70,10 +69,6 @@ type Results struct {
 }
 
 func ServersFromFile(filename string) (sl ServerList, err error) {
-	if filename[0] != '/' {
-		pwd, _ := os.Getwd()
-		filename = pwd + "/" + filename
-	}
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return
@@ -131,11 +126,6 @@ func ServersFromCSVURL(url string) (sl ServerList, err error) {
 }
 
 func (sl *ServerList) DumpToFile(filename string) (err error) {
-	if filename[0] != '/' {
-		pwd, _ := os.Getwd()
-		filename = pwd + "/" + filename
-	}
-
 	yml, err := yaml.Marshal(sl)
 	if err != nil {
 		return
