@@ -21,6 +21,7 @@ import (
 	"sync"
 	"os"
 	"fmt"
+	"time"
 )
 
 var updateLog = logger.New("update")
@@ -37,10 +38,12 @@ func Update(source, target string) error {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	var working ServerList
+	limiter := time.Tick(time.Second / time.Duration(requestRate))
 	for _, s := range toTest {
 		wg.Add(1)
 		go func(s Server) {
 			defer wg.Done()
+			<-limiter
 			updateLog.Info("Testing " + s.Reverse)
 			if ok, err := s.Test(); ok {
 				mutex.Lock()

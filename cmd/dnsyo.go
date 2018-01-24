@@ -23,6 +23,7 @@ import (
 	"github.com/azer/logger"
 	"github.com/miekg/dns"
 	"strings"
+	"time"
 )
 
 var (
@@ -30,6 +31,7 @@ var (
 	resolverfile string
 	country      string
 	requestType  string
+	requestRate  int
 )
 
 var yoLog = logger.New("dnsyo")
@@ -75,7 +77,7 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		result := sl.Query(args[0], t)
+		result := sl.Query(args[0], t, time.Second / time.Duration(requestRate))
 
 		fmt.Printf(`
  - RESULTS
@@ -116,6 +118,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
+	rootCmd.PersistentFlags().IntVarP(&requestRate, "rate", "r", 500, "Number of requests per second")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

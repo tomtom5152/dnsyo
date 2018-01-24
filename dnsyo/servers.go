@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"sync"
 	"strings"
+	"syscall"
 )
 
 const (
@@ -100,16 +101,18 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 	return
 }
 
-func (sl *ServerList) Query(name string, recordType uint16) (r *Results) {
+func (sl *ServerList) Query(name string, recordType uint16, rate time.Duration) (r *Results) {
 	var wg sync.WaitGroup
 	r = new(Results)
 	r.SuccessCount = 0
 	r.ErrorCount = 0
 	r.Success = make(map[string]int, 0)
 	r.Errors = make(map[string]int, 0)
+	limiter := time.Tick(rate)
 	for _, s := range *sl {
 		wg.Add(1)
-		go func(s *Server) {
+		go func(s Server) {
+			<-limiter
 			defer wg.Done()
 			result, err := s.Lookup(name, recordType)
 			key := strings.Join(result, "\n")
@@ -123,7 +126,7 @@ func (sl *ServerList) Query(name string, recordType uint16) (r *Results) {
 				r.Success[key]++
 			}
 			r.mutex.Unlock()
-		}(&s)
+		}(s)
 	}
 
 	wg.Wait()
