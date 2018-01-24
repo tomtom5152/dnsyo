@@ -38,7 +38,7 @@ var yoLog = logger.New("dnsyo")
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "dnsyo",
+	Use:   "dnsyo <domain>",
 	Short: "Compare the DNS results of 1000+ DNS servers",
 	Long:  `Basically dig, if dig queried over 1000 servers and collated their results.`,
 	Args:  cobra.MinimumNArgs(1),

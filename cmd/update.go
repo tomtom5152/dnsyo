@@ -69,7 +69,7 @@ func Update(source, target string) error {
 
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
-	Use:   "update",
+	Use:   "update <source> <destination>",
 	Short: "Update the list of resolvers",
 	Long: `Performs a test query on all of the configured name servers to see if they are working and saves the output
 to the list of active servers.`,
