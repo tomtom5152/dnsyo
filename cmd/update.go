@@ -17,19 +17,17 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	. "github.com/tomtom5152/dnsyo/dnsyo"
-	"github.com/azer/logger"
+	log "github.com/sirupsen/logrus"
 	"sync"
 	"os"
 	"fmt"
 	"time"
 )
 
-var updateLog = logger.New("update")
-
 func Update(source, target string) error {
 	toTest, err := ServersFromFile(source)
 	if err != nil {
-		updateLog.Error(err.Error())
+		log.Fatal(err.Error())
 		return err
 	}
 
@@ -44,13 +42,16 @@ func Update(source, target string) error {
 		go func(s Server) {
 			defer wg.Done()
 			<-limiter
-			updateLog.Info("Testing " + s.Reverse)
+			log.Debug("Testing " + s.Reverse)
 			if ok, err := s.Test(); ok {
 				mutex.Lock()
 				working = append(working, s)
 				mutex.Unlock()
 			} else {
-				updateLog.Info("Disabling %s: %s", s.Reverse, err)
+				log.WithFields(log.Fields{
+					"server": s.Reverse,
+					"reason": err,
+				}).Info("Disabling server")
 			}
 		}(s)
 	}
@@ -58,7 +59,7 @@ func Update(source, target string) error {
 	wg.Wait()
 	err = working.DumpToFile(target)
 	if err != nil {
-		updateLog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -94,4 +95,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// updateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	updateCmd.Flags().StringP("csvurl", "u", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
 }

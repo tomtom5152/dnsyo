@@ -2,15 +2,63 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/gopherjs/gopherjs"
+  packages = ["js"]
+  revision = "178c176a91fe05e3e6c58fa5c989bad19e6cdcb3"
+
+[[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
+  name = "github.com/jtolds/gls"
+  packages = ["."]
+  revision = "77f18212c9c7edc9bd6a33d383a7b545ce62f064"
+  version = "v4.2.1"
+
+[[projects]]
   name = "github.com/miekg/dns"
   packages = ["."]
   revision = "5ec25f2a5044291b6c8abf43ed8a201da241e69e"
   version = "v1.0.3"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
+
+[[projects]]
+  name = "github.com/smartystreets/assertions"
+  packages = [".","internal/go-render/render","internal/oglematchers"]
+  revision = "0b37b35ec7434b77e77a4bb29b79677cced992ea"
+  version = "1.8.1"
+
+[[projects]]
+  name = "github.com/smartystreets/goconvey"
+  packages = ["convey","convey/gotest","convey/reporting"]
+  revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
+  version = "1.6.3"
+
+[[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
+
+[[projects]]
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ed25519","ed25519/internal/edwards25519"]
+  packages = ["ed25519","ed25519/internal/edwards25519","ssh/terminal"]
   revision = "ee41a25c63fb5b74abf2213abb6dee3751e6ac4a"
 
 [[projects]]
@@ -19,9 +67,21 @@
   packages = ["bpf","internal/iana","internal/socket","ipv4","ipv6"]
   revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix","windows"]
+  revision = "af50095a40f9041b3b38960738837185c26e9419"
+
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "736b1de9f0e956d88d1fe3f6e0d8bae2d385095c5b7acab99521e33149e1e72c"
+  inputs-digest = "a08b16c959e206a08e946490d61cf3cdcf3feb0a06ebc91159db28790fce9128"
   solver-name = "gps-cdcl"
   solver-version = 1

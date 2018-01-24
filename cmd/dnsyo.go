@@ -20,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 	. "github.com/tomtom5152/dnsyo/dnsyo"
-	"github.com/azer/logger"
+	log "github.com/sirupsen/logrus"
 	"github.com/miekg/dns"
 	"strings"
 	"time"
@@ -34,8 +34,6 @@ var (
 	requestRate  int
 )
 
-var yoLog = logger.New("dnsyo")
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "dnsyo <domain>",
@@ -48,32 +46,27 @@ var rootCmd = &cobra.Command{
 		requestType = strings.ToUpper(requestType)
 		t, ok := dns.StringToType[requestType]
 		if !ok {
-			yoLog.Error("unable to use type %s", requestType)
+			log.Fatalf("unable to use type %s", requestType)
 		}
 
 		// perform a lookup
 		sl, err := ServersFromFile(resolverfile)
 		if err != nil {
-			yoLog.Error(err.Error())
-			os.Exit(1)
+			log.Fatal(err.Error())
 			return
 		}
 
 		if country != "" {
 			sl, err = sl.FilterCountry(country)
 			if err != nil {
-				yoLog.Error(err.Error())
-				os.Exit(2)
-				return
+				log.Error(err.Error())
 			}
 		}
 
 		if servers != 0 {
 			sl, err = sl.NRandom(servers)
 			if err != nil {
-				yoLog.Error(err.Error())
-				os.Exit(2)
-				return
+				log.Error(err.Error())
 			}
 		}
 
@@ -112,6 +105,7 @@ func Execute() {
 }
 
 func init() {
+	//log.SetFormatter(&log.TextFormatter{})
 	//cobra.OnInitialize(initConfig)
 
 	// Here you will define your flags and configuration settings.
