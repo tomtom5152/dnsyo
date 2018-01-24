@@ -204,4 +204,20 @@ func TestServer_Lookup(t *testing.T) {
 			So(err.Error(), ShouldEqual, "TIMEOUT")
 		})
 	})
+
+	Convey("localhost should refuse the connection", t, func () {
+		s := Server{
+			Ip:       "127.0.0.1",
+			Country:  "NA",
+			Provider: "LOCALHOST",
+			Reverse:  "localhost",
+		}
+
+		Convey("google.com NS as these are unlikely to change", func() {
+			results, err := s.Lookup("google.com", dns.TypeNS)
+			So(results, ShouldBeNil)
+			So(err, ShouldBeError)
+			So(err.Error(), ShouldEqual, "CONNECTION REFUSED")
+		})
+	})
 }

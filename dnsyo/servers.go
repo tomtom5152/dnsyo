@@ -196,6 +196,20 @@ func (s *Server) Lookup(name string, recordType uint16) (results []string, err e
 		if err, ok := err.(net.Error); ok && err.Timeout() {
 			return nil, errors.New("TIMEOUT")
 		}
+
+		switch t := err.(type) {
+		case *net.OpError:
+			if t.Op == "read" {
+				err = errors.New("CONNECTION REFUSED")
+			}
+
+		case syscall.Errno:
+			switch t {
+			case syscall.ECONNREFUSED:
+				err = errors.New("CONNECTION REFUSED")
+			}
+		}
+
 		return
 	}
 
