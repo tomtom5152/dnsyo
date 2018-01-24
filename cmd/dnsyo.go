@@ -58,14 +58,14 @@ var rootCmd = &cobra.Command{
 		if country != "" {
 			sl, err = sl.FilterCountry(country)
 			if err != nil {
-				log.Error(err.Error())
+				log.Fatal(err.Error())
 			}
 		}
 
 		if servers != 0 {
 			sl, err = sl.NRandom(servers)
 			if err != nil {
-				log.Error(err.Error())
+				log.Fatal(err.Error())
 			}
 		}
 

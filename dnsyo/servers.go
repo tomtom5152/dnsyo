@@ -114,7 +114,7 @@ func ServersFromCSVURL(url string) (sl ServerList, err error) {
 		if ns.Reliability >= reliabilityThreshold {
 			s := Server{
 				Ip:      ns.IPAddress,
-				Country: ns.Country,
+				Country: strings.ToUpper(ns.Country),
 				Name:    ns.Name,
 			}
 			sl = append(sl, s)
@@ -138,7 +138,7 @@ func (sl *ServerList) DumpToFile(filename string) (err error) {
 
 func (sl *ServerList) FilterCountry(country string) (fl ServerList, err error) {
 	for _, s := range *sl {
-		if s.Country == country {
+		if s.Country == strings.ToUpper(country) {
 			fl = append(fl, s)
 		}
 	}
@@ -154,7 +154,7 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 	ql := *sl
 
 	if len(ql) < n {
-		return nil, errors.New("insufficient servers to populate list")
+		return nil, errors.New(fmt.Sprintf("insufficient servers to populate list: %d of %d", len(ql), n))
 	}
 
 	rl = make(ServerList, n)
