@@ -4,7 +4,6 @@ import (
 	"testing"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/miekg/dns"
-	"time"
 )
 
 const (
@@ -93,7 +92,7 @@ func TestServerList_Query(t *testing.T) {
 	}
 
 	Convey("perform a query that will work and we can compare the results", t, func() {
-		result := sl.Query("example.com", dns.TypeA, time.Millisecond * 50)
+		result := sl.Query("example.com", dns.TypeA, 10)
 		So(result, ShouldNotBeNil)
 
 		// every server should be polled

@@ -23,7 +23,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/miekg/dns"
 	"strings"
-	"time"
 )
 
 var (
@@ -31,7 +30,7 @@ var (
 	resolverfile string
 	country      string
 	requestType  string
-	requestRate  int
+	numThreads   int
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -70,7 +69,7 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		result := sl.Query(args[0], t, time.Second / time.Duration(requestRate))
+		result := sl.Query(args[0], t, numThreads)
 
 		fmt.Printf(`
  - RESULTS
@@ -112,8 +111,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
-	rootCmd.PersistentFlags().IntVarP(&requestRate, "rate", "r", 500, "Number of requests per second")
-	rootCmd.PersistentFlags().StringVarP(&resolverfile, "resolverfile", "", "~/.dnsyo-resolver-list.yml", "Location of the local yaml resolvers file")
+	rootCmd.PersistentFlags().IntVarP(&numThreads, "threads", "t", 500, "Number of threads to run")
+	rootCmd.PersistentFlags().StringVarP(&resolverfile, "resolverfile", "", "dnsyo-resolver-list.yml", "Location of the local yaml resolvers file")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

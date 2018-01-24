@@ -21,7 +21,6 @@ import (
 	"sync"
 	"os"
 	"fmt"
-	"time"
 
 )
 
@@ -41,29 +40,39 @@ func Update(source, target string) error {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	var working ServerList
-	limiter := time.Tick(time.Second / time.Duration(requestRate))
-	for _, s := range toTest {
+	testQueue := make(chan Server, len(toTest))
+
+	// start workers
+	for i := 0; i < numThreads; i++ {
 		wg.Add(1)
-		go func(s Server) {
+		go func(i int) {
 			defer wg.Done()
-			<-limiter
-			log.Debug("Testing " + s.Name)
-			if ok, err := s.Test(); ok {
-				mutex.Lock()
-				working = append(working, s)
-				mutex.Unlock()
-			} else {
-				sName := s.Name
-				if sName == "" {
-					sName = s.Ip
+			for s := range testQueue {
+				log.WithField("thread", i).Debug("Testing " + s.Name)
+				if ok, err := s.Test(); ok {
+					mutex.Lock()
+					working = append(working, s)
+					mutex.Unlock()
+				} else {
+					sName := s.Name
+					if sName == "" {
+						sName = s.Ip
+					}
+					log.WithFields(log.Fields{
+						"thread": i,
+						"server": sName,
+						"reason": err,
+					}).Info("Disabling server")
 				}
-				log.WithFields(log.Fields{
-					"server": sName,
-					"reason": err,
-				}).Info("Disabling server")
 			}
-		}(s)
+		}(i)
 	}
+
+	// add test servers
+	for _, s := range toTest {
+		testQueue <- s
+	}
+	close(testQueue)
 
 	wg.Wait()
 	err = working.DumpToFile(target)

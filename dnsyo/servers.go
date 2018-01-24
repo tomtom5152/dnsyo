@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	answerResult = 4
+	answerResult         = 4
 	reliabilityThreshold = 0.97
 )
 
@@ -65,7 +65,6 @@ type Results struct {
 	SuccessCount, ErrorCount int
 	Success                  map[string]int
 	Errors                   map[string]int
-	mutex                    sync.Mutex
 }
 
 func ServersFromFile(filename string) (sl ServerList, err error) {
@@ -96,7 +95,7 @@ func ServersFromCSVURL(url string) (sl ServerList, err error) {
 	}
 
 	rows := strings.Split(string(bytes), "\n")
-	nCols := strings.Count(rows[0],",")
+	nCols := strings.Count(rows[0], ",")
 	if strings.Count(rows[len(rows)-1], ",") < nCols {
 		rows = rows[:len(rows)-2]
 	}
@@ -114,9 +113,9 @@ func ServersFromCSVURL(url string) (sl ServerList, err error) {
 		}
 		if ns.Reliability >= reliabilityThreshold {
 			s := Server{
-				Ip: ns.IPAddress,
+				Ip:      ns.IPAddress,
 				Country: ns.Country,
-				Name: ns.Name,
+				Name:    ns.Name,
 			}
 			sl = append(sl, s)
 		}
@@ -168,33 +167,44 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 	return
 }
 
-func (sl *ServerList) Query(name string, recordType uint16, rate time.Duration) (r *Results) {
+func (sl *ServerList) Query(name string, recordType uint16, threads int) (r *Results) {
 	var wg sync.WaitGroup
 	r = new(Results)
 	r.SuccessCount = 0
 	r.ErrorCount = 0
 	r.Success = make(map[string]int, 0)
 	r.Errors = make(map[string]int, 0)
-	limiter := time.Tick(rate)
-	for _, s := range *sl {
-		wg.Add(1)
-		go func(s Server) {
-			<-limiter
-			defer wg.Done()
-			result, err := s.Lookup(name, recordType)
-			key := strings.Join(result, "\n")
+	var mtx sync.Mutex
 
-			r.mutex.Lock()
-			if err != nil {
-				r.ErrorCount++
-				r.Errors[err.Error()]++
-			} else {
-				r.SuccessCount++
-				r.Success[key]++
+	queue := make(chan Server, len(*sl))
+
+	// start workers
+	for i := 0; i < threads; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			for s := range queue {
+				res, err := s.Lookup(name, recordType)
+				key := strings.Join(res, "\n")
+
+				mtx.Lock()
+				if err != nil {
+					r.ErrorCount++
+					r.Errors[err.Error()]++
+				} else {
+					r.SuccessCount++
+					r.Success[key]++
+				}
+				mtx.Unlock()
 			}
-			r.mutex.Unlock()
-		}(s)
+
+		}(i)
 	}
+
+	for _, s := range *sl {
+		queue <- s
+	}
+	close(queue)
 
 	wg.Wait()
 	return
