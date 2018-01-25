@@ -1,6 +1,9 @@
 # DNSYO
 ## AALLLLL THE DNS
 
+[![Build Status](https://travis-ci.org/tomtom5152/dnsyo.svg?branch=master)](https://travis-ci.org/tomtom5152/dnsyo)
+[![codecov](https://codecov.io/gh/tomtom5152/dnsyo/branch/master/graph/badge.svg)](https://codecov.io/gh/tomtom5152/dnsyo)
+
 DNSYO is a little tool to help keep track of DNS propagation, a Go port
 of [YoSmudge/dnsyo](https://github.com/YoSmudge/dnsyo/).
 

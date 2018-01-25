@@ -1,5 +1,9 @@
 language: go
 
+os:
+  - linux
+  - osx
+
 go:
   - 1.9
 
@@ -14,3 +18,20 @@ before_install:
 
 install:
   - dep ensure
+
+script:
+  - ./coverage.sh
+  - go build -o bin/dnsyo-$TRAVIS_OS_NAME
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+  provider: releases
+  api_key:
+    secure: HaEiLA53V0RkCeWPb9+nY7ip86gpNswrZvkoFluych5a2FYZizrr480XSJjxI83sYRXPNvp6mmxaj8TEvFX1N3F8ZG3LmvaBHsfaQC35Y7ngtNXt++I19I1GVqBxSTftABstvK1EvKAgkg8YQGtIm+BsKGbJHFQF+HLaRjHT4SEPhwrG0aFmwL2/r4DgJMGZgDjbt9rnoQKxfPAPDEhZNysk2oMK7qEArw7OwzIVXNtTLDPOU1mH0N+7eW1bRm7fyuQAFp7BqNnOWVHbjP6spctxMSHTi52ImecVyBfFo13imtKll1Ln4JHD2IN+s5PQWXZKi+maySmcOw+omXRFNLSIdocRvDGydKEVkEwBuEndiqsPnJxCpEVpq3SnaM3kjs6Z5rYFNRamdfyQybudM9wicgnZtZN8nLQRc8wr2/1J3WpfJEhhmvAz1eoCFo018/yCfowDWDVH2qAqz7eXVzAPPzGz8Pt0F/A5/nmLNxl/uQg/DytONArNpsdyJ86giUou4SfQOz/OBE1gfChcPXwXlEfEbCp9Sn2dSq5syqcBBFobeJJi8TiYy8X85BxNEI4ukuqH9tSfq1jN1faJ5Ylg0sWnI31tNwhM+dhYoCRKoiMQcc+4pbLIs5VX1jivpERVeKiB9OZVHs68RwvicSs4u1SFDcajId/PieVfOEE=
+  file: bin/dnsyo-$TRAVIS_OS_NAME
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: tomtom5152/dnsyo
