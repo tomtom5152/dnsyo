@@ -21,8 +21,6 @@ import (
 	"github.com/spf13/cobra"
 	. "github.com/tomtom5152/dnsyo/dnsyo"
 	log "github.com/sirupsen/logrus"
-	"github.com/miekg/dns"
-	"strings"
 )
 
 var (
@@ -42,12 +40,6 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		requestType = strings.ToUpper(requestType)
-		t, ok := dns.StringToType[requestType]
-		if !ok {
-			log.Fatalf("unable to use type %s", requestType)
-		}
-
 		// perform a lookup
 		sl, err := ServersFromFile(resolverfile)
 		if err != nil {
@@ -69,28 +61,14 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		result := sl.Query(args[0], t, numThreads)
-
-		fmt.Printf(`
- - RESULTS
-I asked %d servers for %s records related to %s,
-%d responded with records and %d gave errors
-Here are the results;`, len(sl), requestType, args[0], result.SuccessCount, result.ErrorCount)
-		fmt.Print("\n\n\n")
-
-		if result.SuccessCount > 0{
-			for result, count := range result.Success {
-				fmt.Printf("%d servers responded with;\n%s\n\n", count, result)
-			}
+		q := &Query{
+			Domain: args[0],
+			Type: requestType,
 		}
 
-		if result.ErrorCount > 0{
-			fmt.Print("\nAnd here are the errors;\n\n")
+		q.Results = sl.ExecuteQuery(q, numThreads)
 
-			for err, count := range result.Errors {
-				fmt.Printf("%d servers responded with;\n%s\n\n", count, err)
-			}
-		}
+		print(q.ToTextSummary())
 	},
 }
 

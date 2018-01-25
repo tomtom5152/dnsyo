@@ -167,13 +167,11 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 	return
 }
 
-func (sl *ServerList) Query(name string, recordType uint16, threads int) (r *Results) {
+func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
+	recordType := dns.StringToType[q.Type]
+	qr = make(QueryResults)
+
 	var wg sync.WaitGroup
-	r = new(Results)
-	r.SuccessCount = 0
-	r.ErrorCount = 0
-	r.Success = make(map[string]int, 0)
-	r.Errors = make(map[string]int, 0)
 	var mtx sync.Mutex
 
 	queue := make(chan Server, len(*sl))
@@ -184,17 +182,19 @@ func (sl *ServerList) Query(name string, recordType uint16, threads int) (r *Res
 		go func(i int) {
 			defer wg.Done()
 			for s := range queue {
-				res, err := s.Lookup(name, recordType)
-				key := strings.Join(res, "\n")
+				res, err := s.Lookup(q.Domain, recordType)
+				ans := strings.Join(res, "\n")
+
+				r := new(Result)
+
+				if err != nil {
+					r.Error = err.Error()
+				} else {
+					r.Answer = ans
+				}
 
 				mtx.Lock()
-				if err != nil {
-					r.ErrorCount++
-					r.Errors[err.Error()]++
-				} else {
-					r.SuccessCount++
-					r.Success[key]++
-				}
+				qr[s] = r
 				mtx.Unlock()
 			}
 

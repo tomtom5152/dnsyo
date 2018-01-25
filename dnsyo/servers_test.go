@@ -92,19 +92,18 @@ func TestServerList_Query(t *testing.T) {
 	}
 
 	Convey("perform a query that will work and we can compare the results", t, func() {
-		result := sl.Query("example.com", dns.TypeA, 10)
+		q := &Query{
+			Domain: "example.com",
+			Type: "A",
+		}
+		result := sl.ExecuteQuery(q, 10)
 		So(result, ShouldNotBeNil)
 
 		// every server should be polled
-		So(result.SuccessCount + result.ErrorCount, ShouldEqual, len(sl))
-
-		// with out test list we should have 8 success and 1 failure
-		So(result.SuccessCount, ShouldEqual, 8)
-		So(result.ErrorCount, ShouldEqual, 1)
+		So(len(result), ShouldEqual, len(sl))
 
 		// check the result we have is correct
-		So(result.Success, ShouldResemble, map[string]int{"93.184.216.34": 8})
-		So(result.Errors, ShouldResemble, map[string]int{"TIMEOUT": 1})
+		So(result[sl[8]], ShouldResemble, &Result{Error:"TIMEOUT"})
 	})
 }
 
