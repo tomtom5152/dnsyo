@@ -105,3 +105,16 @@ func TestServerList_Query(t *testing.T) {
 		So(result[sl[8].String()], ShouldResemble, &Result{Error:"TIMEOUT"})
 	})
 }
+
+func TestServerList_TestAll(t *testing.T) {
+	sl, _ := ServersFromFile(testYaml)
+	if len(sl) != 9 {
+		t.Error("incorred number of servers, double check test list")
+	}
+
+	Convey("running test all should eliminate postec", t, func() {
+		working := sl.TestAll(9)
+		So(working, ShouldHaveLength, 8)
+		So(working, ShouldNotContain, sl[8])
+	})
+}

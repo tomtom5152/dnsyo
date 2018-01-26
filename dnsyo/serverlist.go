@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"github.com/gocarina/gocsv"
 	"github.com/miekg/dns"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -243,3 +244,40 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 //	wg.Wait()
 //	return
 //}
+
+func (sl *ServerList) TestAll(threads int) (working ServerList) {
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	testQueue := make(chan Server, len(*sl))
+
+	// start workers
+	for i := 0; i < threads; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			for s := range testQueue {
+				log.WithField("thread", i).Debug("Testing " + s.Name)
+				if ok, err := s.Test(); ok {
+					mutex.Lock()
+					working = append(working, s)
+					mutex.Unlock()
+				} else {
+					log.WithFields(log.Fields{
+						"thread": i,
+						"server": s.String(),
+						"reason": err,
+					}).Info("Disabling server")
+				}
+			}
+		}(i)
+	}
+
+	// add test servers
+	for _, s := range *sl {
+		testQueue <- s
+	}
+	close(testQueue)
+
+	wg.Wait()
+	return working
+}
