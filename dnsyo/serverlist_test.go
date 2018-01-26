@@ -7,6 +7,8 @@ import (
 
 const (
 	testYaml = "../config/test-resolver-list.yml"
+	testCsvUrl = "https://public-dns.info/nameserver/de.csv" // german servers a relatively limited in number but consistent
+	testCsvMinCount = 400 // less than the actual number due to reliability tests
 )
 
 func TestServerListFromFile(t *testing.T) {
@@ -34,6 +36,29 @@ func TestServerListFromFile(t *testing.T) {
 
 			So(sl, ShouldNotContain, l3)
 		})
+	})
+}
+
+func TestServersFromCSVURL(t *testing.T) {
+	dnswatch1 := Server{
+		Ip: "84.200.69.80",
+		Name: "resolver1.ihgip.net.",
+		Country: "DE",
+	}
+
+	// select a bad server from the list to use as our bad server
+	badServer := Server{
+		Ip: "148.251.43.199",
+		Name: "static.199.43.251.148.clients.your-server.de.",
+		Country: "DE",
+	}
+
+	Convey("loading from CSV provides us with a populated list of a reasonable size", t, func() {
+		sl, err := ServersFromCSVURL(testCsvUrl)
+		So(err, ShouldBeNil)
+		So(len(sl), ShouldBeGreaterThan, testCsvMinCount)
+		So(sl, ShouldContain, dnswatch1)
+		So(sl, ShouldNotContain, badServer)
 	})
 }
 
