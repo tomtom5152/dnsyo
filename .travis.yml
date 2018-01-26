@@ -1,38 +1,90 @@
 language: go
-
-os:
-  - linux
-  - osx
-
-go:
-  - 1.9
+sudo: false
 
 env:
   - DEP_VERSION="0.4.1"
 
-before_install:
-  # Download the binary to bin folder in $GOPATH
-  - if [[ $TRAVIS_OS_NAME == "osx" ]]; then kernel="darwin"; else kernel="linux"; fi
-  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-${kernel}-amd64 -o $GOPATH/bin/dep
-  # Make the binary executable
-  - chmod +x $GOPATH/bin/dep
-
-install:
-  - dep ensure
-
-script:
-  - ./coverage.sh
-  - go build -o bin/dnsyo-$TRAVIS_OS_NAME
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
-
-deploy:
-  provider: releases
-  api_key:
-    secure: HaEiLA53V0RkCeWPb9+nY7ip86gpNswrZvkoFluych5a2FYZizrr480XSJjxI83sYRXPNvp6mmxaj8TEvFX1N3F8ZG3LmvaBHsfaQC35Y7ngtNXt++I19I1GVqBxSTftABstvK1EvKAgkg8YQGtIm+BsKGbJHFQF+HLaRjHT4SEPhwrG0aFmwL2/r4DgJMGZgDjbt9rnoQKxfPAPDEhZNysk2oMK7qEArw7OwzIVXNtTLDPOU1mH0N+7eW1bRm7fyuQAFp7BqNnOWVHbjP6spctxMSHTi52ImecVyBfFo13imtKll1Ln4JHD2IN+s5PQWXZKi+maySmcOw+omXRFNLSIdocRvDGydKEVkEwBuEndiqsPnJxCpEVpq3SnaM3kjs6Z5rYFNRamdfyQybudM9wicgnZtZN8nLQRc8wr2/1J3WpfJEhhmvAz1eoCFo018/yCfowDWDVH2qAqz7eXVzAPPzGz8Pt0F/A5/nmLNxl/uQg/DytONArNpsdyJ86giUou4SfQOz/OBE1gfChcPXwXlEfEbCp9Sn2dSq5syqcBBFobeJJi8TiYy8X85BxNEI4ukuqH9tSfq1jN1faJ5Ylg0sWnI31tNwhM+dhYoCRKoiMQcc+4pbLIs5VX1jivpERVeKiB9OZVHs68RwvicSs4u1SFDcajId/PieVfOEE=
-  file: bin/dnsyo-$TRAVIS_OS_NAME
-  skip_cleanup: true
-  on:
-    tags: true
-    repo: tomtom5152/dnsyo
+jobs:
+  include:
+    - stage: test
+      os: linux
+      go: 1.9.x
+      before_install:
+        # Download the binary to bin folder in $GOPATH
+        - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+        # Make the binary executable
+        - chmod +x $GOPATH/bin/dep
+      install:
+        - dep ensure
+      script:
+        - ./hack/coverage.sh
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
+    - &simple-test
+      go: 1.8.x
+      stage: test
+      before_install:
+        # Download the binary to bin folder in $GOPATH
+        - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+        # Make the binary executable
+        - chmod +x $GOPATH/bin/dep
+      install:
+        - dep ensure
+      script: go test -race $(go list ./... | grep -v vendor)
+    - <<: *simple-test
+      go: tip
+    - <<: *simple-test
+      os: osx
+      go: 1.9.x
+      install:
+        # brew takes horribly long to update itself despite the above caching
+        # attempt; only bzr install if it's not on the $PATH
+        - test $(which dep) || brew install dep
+      env:
+        - HOMEBREW_NO_AUTO_UPDATE=1
+      script:
+        # OSX as of El Capitan sets an exit trap that interacts poorly with how
+        # travis seems to spawn these shells; if set -e is set, then it can cause
+        # build failures. We're not doing that here, but retain the trap statement
+        # for future safety.
+        # Related: https://superuser.com/questions/1044130/why-am-i-having-how-can-i-fix-this-error-shell-session-update-command-not-f
+        - trap EXIT
+        - go test -race ./...
+    - stage: deploy
+      go: 1.9.x
+      before_install:
+        # Download the binary to bin folder in $GOPATH
+        - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+        # Make the binary executable
+        - chmod +x $GOPATH/bin/dep
+      install:
+        - dep ensure
+      script: skip
+      before_deploy:
+        - ./hack/build-all.sh
+      deploy:
+        provider: releases
+        api_key:
+          secure: HaEiLA53V0RkCeWPb9+nY7ip86gpNswrZvkoFluych5a2FYZizrr480XSJjxI83sYRXPNvp6mmxaj8TEvFX1N3F8ZG3LmvaBHsfaQC35Y7ngtNXt++I19I1GVqBxSTftABstvK1EvKAgkg8YQGtIm+BsKGbJHFQF+HLaRjHT4SEPhwrG0aFmwL2/r4DgJMGZgDjbt9rnoQKxfPAPDEhZNysk2oMK7qEArw7OwzIVXNtTLDPOU1mH0N+7eW1bRm7fyuQAFp7BqNnOWVHbjP6spctxMSHTi52ImecVyBfFo13imtKll1Ln4JHD2IN+s5PQWXZKi+maySmcOw+omXRFNLSIdocRvDGydKEVkEwBuEndiqsPnJxCpEVpq3SnaM3kjs6Z5rYFNRamdfyQybudM9wicgnZtZN8nLQRc8wr2/1J3WpfJEhhmvAz1eoCFo018/yCfowDWDVH2qAqz7eXVzAPPzGz8Pt0F/A5/nmLNxl/uQg/DytONArNpsdyJ86giUou4SfQOz/OBE1gfChcPXwXlEfEbCp9Sn2dSq5syqcBBFobeJJi8TiYy8X85BxNEI4ukuqH9tSfq1jN1faJ5Ylg0sWnI31tNwhM+dhYoCRKoiMQcc+4pbLIs5VX1jivpERVeKiB9OZVHs68RwvicSs4u1SFDcajId/PieVfOEE=
+        file:
+          - release/dnsyo-linux-amd64
+          - release/dnsyo-linux-amd64.sha256
+          - release/dnsyo-darwin-amd64
+          - release/dnsyo-darwin-amd64.sha256
+          - release/dnsyo-freebsd-amd64
+          - release/dnsyo-freebsd-amd64.sha256
+          - release/dnsyo-windows-amd64.exe
+          - release/dnsyo-windows-amd64.exe.sha256
+          - release/dnsyo-linux-386
+          - release/dnsyo-linux-386.sha256
+          - release/dnsyo-darwin-386
+          - release/dnsyo-darwin-386.sha256
+          - release/dnsyo-freebsd-386
+          - release/dnsyo-freebsd-386.sha256
+          - release/dnsyo-windows-386.exe
+          - release/dnsyo-windows-386.exe.sha256
+        skip_cleanup: true
+        on:
+          repo: tomtom5152/dnsyo
+          branch: master
+          tags: true
