@@ -194,7 +194,7 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 				}
 
 				mtx.Lock()
-				qr[s] = r
+				qr[s.String()] = r
 				mtx.Unlock()
 			}
 
@@ -209,6 +209,47 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 	wg.Wait()
 	return
 }
+
+//func (sl *ServerList) StreamQuery(q *Query, threads int, results chan QueryResults) {
+//	recordType := dns.StringToType[q.Type]
+//
+//	var wg sync.WaitGroup
+//
+//	queue := make(chan Server, len(*sl))
+//
+//	// start workers
+//	for i := 0; i < threads; i++ {
+//		wg.Add(1)
+//		go func(i int) {
+//			defer wg.Done()
+//			for s := range queue {
+//				res, err := s.Lookup(q.Domain, recordType)
+//				ans := strings.Join(res, "\n")
+//
+//				r := &Result{
+//					Answer: ans,
+//				}
+//				if err != nil {
+//					r.Error = err.Error()
+//				}
+//
+//				qr := QueryResults{
+//					s: r,
+//				}
+//
+//				results <- qr
+//			}
+//		}(i)
+//	}
+//
+//	for _, s := range *sl {
+//		queue <- s
+//	}
+//	close(queue)
+//
+//	wg.Wait()
+//	return
+//}
 
 func (s *Server) Test() (ok bool, err error) {
 	tests := []dns.Question{
@@ -303,4 +344,11 @@ func (s *Server) Lookup(name string, recordType uint16) (results []string, err e
 	}
 
 	return
+}
+
+func (s *Server) String() (string) {
+	if s.Name != "" {
+		return s.Name
+	}
+	return s.Ip
 }

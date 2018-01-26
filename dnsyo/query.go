@@ -2,15 +2,7 @@ package dnsyo
 
 import (
 	"fmt"
-	"encoding/json"
 )
-
-type Result struct {
-	Answer string
-	Error  string `json:",omitempty"`
-}
-
-type QueryResults map[Server]*Result
 
 type resultSummary struct {
 	SuccessCount, ErrorCount int
@@ -61,13 +53,4 @@ Here are the results;`, len(q.Results), q.Type, q.Domain, rs.SuccessCount, rs.Er
 	}
 
 	return text
-}
-
-func (q *Query) ToJson() (text string, err error) {
-	data, err := json.Marshal(q)
-	if err != nil {
-		return
-	}
-
-	return string(data), nil
 }

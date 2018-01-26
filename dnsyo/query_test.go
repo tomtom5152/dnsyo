@@ -28,8 +28,8 @@ I asked 0 servers for FOO records related to example.test,
 	Convey("successes", t, func() {
 		Convey("two different", func() {
 			q.Results = QueryResults{
-				s1: &Result{Answer: "1234"},
-				s2: &Result{Answer: "5678"},
+				s1.String(): &Result{Answer: "1234"},
+				s2.String(): &Result{Answer: "5678"},
 			}
 
 			text := q.ToTextSummary()
@@ -40,8 +40,8 @@ I asked 0 servers for FOO records related to example.test,
 
 		Convey("two of the same", func() {
 			q.Results = QueryResults{
-				s1: &Result{Answer: "1234"},
-				s2: &Result{Answer: "1234"},
+				s1.String(): &Result{Answer: "1234"},
+				s2.String(): &Result{Answer: "1234"},
 			}
 
 			text := q.ToTextSummary()
@@ -53,8 +53,8 @@ I asked 0 servers for FOO records related to example.test,
 	Convey("errors", t, func() {
 		Convey("two different", func() {
 			q.Results = QueryResults{
-				s1: &Result{Error: "1234"},
-				s2: &Result{Error: "5678"},
+				s1.String(): &Result{Error: "1234"},
+				s2.String(): &Result{Error: "5678"},
 			}
 
 			text := q.ToTextSummary()
@@ -66,8 +66,8 @@ I asked 0 servers for FOO records related to example.test,
 
 		Convey("two of the same", func() {
 			q.Results = QueryResults{
-				s1: &Result{Error: "1234"},
-				s2: &Result{Error: "1234"},
+				s1.String(): &Result{Error: "1234"},
+				s2.String(): &Result{Error: "1234"},
 			}
 
 			text := q.ToTextSummary()

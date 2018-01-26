@@ -103,7 +103,7 @@ func TestServerList_Query(t *testing.T) {
 		So(len(result), ShouldEqual, len(sl))
 
 		// check the result we have is correct
-		So(result[sl[8]], ShouldResemble, &Result{Error:"TIMEOUT"})
+		So(result[sl[8].String()], ShouldResemble, &Result{Error:"TIMEOUT"})
 	})
 }
 
