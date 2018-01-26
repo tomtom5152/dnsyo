@@ -3,7 +3,6 @@ package dnsyo
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"github.com/miekg/dns"
 	"errors"
 	"net"
 	"time"
@@ -11,21 +10,15 @@ import (
 	"math/rand"
 	"sync"
 	"strings"
-	"syscall"
 	"net/http"
 	"github.com/gocarina/gocsv"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
 	answerResult         = 4
 	reliabilityThreshold = 0.97
 )
-
-type Server struct {
-	Ip      string
-	Country string
-	Name    string
-}
 
 type csvNameserver struct {
 	// IPAddress is the ipv4 address of the server
@@ -168,7 +161,6 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 }
 
 func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
-	recordType := dns.StringToType[q.Type]
 	qr = make(QueryResults)
 
 	var wg sync.WaitGroup
@@ -182,7 +174,7 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 		go func(i int) {
 			defer wg.Done()
 			for s := range queue {
-				res, err := s.Lookup(q.Domain, recordType)
+				res, err := s.Lookup(q.Domain, q.Type)
 				ans := strings.Join(res, "\n")
 
 				r := new(Result)
@@ -194,7 +186,7 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 				}
 
 				mtx.Lock()
-				qr[s] = r
+				qr[s.String()] = r
 				mtx.Unlock()
 			}
 
@@ -210,97 +202,80 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 	return
 }
 
-func (s *Server) Test() (ok bool, err error) {
-	tests := []dns.Question{
-		{dns.Fqdn("google.com"), dns.TypeA, dns.ClassINET},
-		{dns.Fqdn("facebook.com"), dns.TypeA, dns.ClassINET},
-		{dns.Fqdn("amazon.com"), dns.TypeA, dns.ClassINET},
-	}
+//func (sl *ServerList) StreamQuery(q *Query, threads int, results chan QueryResults) {
+//	recordType := dns.StringToType[q.Type]
+//
+//	var wg sync.WaitGroup
+//
+//	queue := make(chan Server, len(*sl))
+//
+//	// start workers
+//	for i := 0; i < threads; i++ {
+//		wg.Add(1)
+//		go func(i int) {
+//			defer wg.Done()
+//			for s := range queue {
+//				res, err := s.Lookup(q.Domain, recordType)
+//				ans := strings.Join(res, "\n")
+//
+//				r := &Result{
+//					Answer: ans,
+//				}
+//				if err != nil {
+//					r.Error = err.Error()
+//				}
+//
+//				qr := QueryResults{
+//					s: r,
+//				}
+//
+//				results <- qr
+//			}
+//		}(i)
+//	}
+//
+//	for _, s := range *sl {
+//		queue <- s
+//	}
+//	close(queue)
+//
+//	wg.Wait()
+//	return
+//}
 
-	addr := s.Ip + ":53"
-	c := new(dns.Client)
-	var lastErr error
+func (sl *ServerList) TestAll(threads int) (working ServerList) {
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	testQueue := make(chan Server, len(*sl))
 
-	for _, q := range tests {
-		msg := new(dns.Msg)
-		msg.Id = dns.Id()
-		msg.RecursionDesired = true
-		msg.Question = make([]dns.Question, 1)
-		msg.Question[0] = q
-
-		resp, _, err := c.Exchange(msg, addr)
-		if err != nil {
-			if err, ok := err.(net.Error); ok && err.Timeout() {
-				// instant fail
-				return false, errors.New("TIMEOUT")
+	// start workers
+	for i := 0; i < threads; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			for s := range testQueue {
+				log.WithField("thread", i).Debug("Testing " + s.Name)
+				if ok, err := s.Test(); ok {
+					mutex.Lock()
+					working = append(working, s)
+					mutex.Unlock()
+				} else {
+					log.WithFields(log.Fields{
+						"thread": i,
+						"server": s.String(),
+						"reason": err,
+					}).Info("Disabling server")
+				}
 			}
-			if lastErr != nil && err.Error() == lastErr.Error() {
-				return false, err
-			}
-			lastErr = err
-			continue
-		}
-
-		if resp == nil {
-			err = errors.New("server did not return a result")
-			if lastErr != nil && err.Error() == lastErr.Error() {
-				return false, err
-			}
-			lastErr = err
-			continue
-		}
+		}(i)
 	}
 
-	return true, nil
-}
-
-func (s *Server) Lookup(name string, recordType uint16) (results []string, err error) {
-	addr := s.Ip + ":53"
-	c := new(dns.Client)
-
-	msg := new(dns.Msg)
-	msg.Id = dns.Id()
-	msg.RecursionDesired = true
-	msg.Question = make([]dns.Question, 1)
-	msg.Question[0] = dns.Question{
-		Name:   dns.Fqdn(name),
-		Qtype:  recordType,
-		Qclass: dns.ClassINET,
+	// add test servers
+	for _, s := range *sl {
+		testQueue <- s
 	}
+	close(testQueue)
 
-	resp, _, err := c.Exchange(msg, addr)
-	if err != nil {
-		if err, ok := err.(net.Error); ok && err.Timeout() {
-			return nil, errors.New("TIMEOUT")
-		}
-
-		switch t := err.(type) {
-		case *net.OpError:
-			if t.Op == "read" {
-				err = errors.New("CONNECTION REFUSED")
-			}
-
-		case syscall.Errno:
-			switch t {
-			case syscall.ECONNREFUSED:
-				err = errors.New("CONNECTION REFUSED")
-			}
-		}
-
-		return
-	}
-
-	if resp.Rcode != dns.RcodeSuccess {
-		return nil, errors.New(dns.RcodeToString[resp.Rcode])
-	}
-
-	if len(resp.Answer) == 0 {
-		return nil, errors.New("NOANSWER")
-	}
-
-	for _, rr := range resp.Answer {
-		results = append(results, strings.Split(rr.String(), "\t")[answerResult])
-	}
-
-	return
+	wg.Wait()
+	return working
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/spf13/cobra"
 	. "github.com/tomtom5152/dnsyo/dnsyo"
 	log "github.com/sirupsen/logrus"
-	"sync"
 	"os"
 	"fmt"
 
@@ -36,45 +35,7 @@ func Update(source, target string) error {
 	}
 
 	fmt.Printf("Testing %d nameservers\n", len(toTest))
-
-	var wg sync.WaitGroup
-	var mutex sync.Mutex
-	var working ServerList
-	testQueue := make(chan Server, len(toTest))
-
-	// start workers
-	for i := 0; i < numThreads; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			for s := range testQueue {
-				log.WithField("thread", i).Debug("Testing " + s.Name)
-				if ok, err := s.Test(); ok {
-					mutex.Lock()
-					working = append(working, s)
-					mutex.Unlock()
-				} else {
-					sName := s.Name
-					if sName == "" {
-						sName = s.Ip
-					}
-					log.WithFields(log.Fields{
-						"thread": i,
-						"server": sName,
-						"reason": err,
-					}).Info("Disabling server")
-				}
-			}
-		}(i)
-	}
-
-	// add test servers
-	for _, s := range toTest {
-		testQueue <- s
-	}
-	close(testQueue)
-
-	wg.Wait()
+	working := toTest.TestAll(numThreads)
 	err = working.DumpToFile(target)
 	if err != nil {
 		log.Error(err.Error())

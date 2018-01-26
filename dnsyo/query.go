@@ -2,15 +2,10 @@ package dnsyo
 
 import (
 	"fmt"
-	"encoding/json"
+	"github.com/miekg/dns"
+	"errors"
+	"strings"
 )
-
-type Result struct {
-	Answer string
-	Error  string `json:",omitempty"`
-}
-
-type QueryResults map[Server]*Result
 
 type resultSummary struct {
 	SuccessCount, ErrorCount int
@@ -21,7 +16,7 @@ type resultSummary struct {
 type Query struct {
 	Results QueryResults
 	Domain  string
-	Type    string
+	Type    uint16
 }
 
 func (q *Query) ToTextSummary() (text string) {
@@ -43,7 +38,7 @@ func (q *Query) ToTextSummary() (text string) {
  - RESULTS
 I asked %d servers for %s records related to %s,
 %d responded with records and %d gave errors
-Here are the results;`, len(q.Results), q.Type, q.Domain, rs.SuccessCount, rs.ErrorCount)
+Here are the results;`, len(q.Results), q.GetType(), q.Domain, rs.SuccessCount, rs.ErrorCount)
 	text += "\n\n\n"
 
 	if rs.SuccessCount > 0 {
@@ -63,11 +58,19 @@ Here are the results;`, len(q.Results), q.Type, q.Domain, rs.SuccessCount, rs.Er
 	return text
 }
 
-func (q *Query) ToJson() (text string, err error) {
-	data, err := json.Marshal(q)
-	if err != nil {
-		return
+func (q *Query) SetType(recordType string) error {
+	recordType = strings.ToUpper(recordType)
+	t, ok := dns.StringToType[recordType]
+	if !ok {
+		return errors.New(fmt.Sprintf("unable to use record type %s", recordType))
 	}
+	q.Type = t
+	return nil
+}
 
-	return string(data), nil
+func (q *Query) GetType() string {
+	if q.Type != 0 {
+		return dns.TypeToString[q.Type]
+	}
+	return ""
 }
