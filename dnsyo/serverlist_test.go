@@ -3,12 +3,14 @@ package dnsyo
 import (
 	"testing"
 	. "github.com/smartystreets/goconvey/convey"
+	"os"
 )
 
 const (
 	testYaml = "../config/test-resolver-list.yml"
 	testCsvUrl = "https://public-dns.info/nameserver/de.csv" // german servers a relatively limited in number but consistent
 	testCsvMinCount = 400 // less than the actual number due to reliability tests
+	tmpYamlDump = ".dump-test.yml"
 )
 
 func TestServerListFromFile(t *testing.T) {
@@ -60,6 +62,29 @@ func TestServersFromCSVURL(t *testing.T) {
 		So(sl, ShouldContain, dnswatch1)
 		So(sl, ShouldNotContain, badServer)
 	})
+}
+
+func TestServerList_DumpToFile(t *testing.T) {
+	sl, _ := ServersFromFile(testYaml)
+	if len(sl) != 9 {
+		t.Error("incorred number of servers, double check test list")
+	}
+
+	Convey("writing to a file does not throw an error", t, func() {
+		err := sl.DumpToFile(tmpYamlDump)
+		So(err, ShouldBeNil)
+
+		Convey("attempt to read that back in and check it against the original list", func() {
+			testList, err := ServersFromFile(tmpYamlDump)
+			So(err, ShouldBeNil)
+			So(testList, ShouldResemble, sl)
+		})
+	})
+
+	err := os.Remove(tmpYamlDump)
+	if err != nil {
+		t.Errorf("failed to delete tempory file: %s", err.Error())
+	}
 }
 
 func TestServerList_FilterCountry(t *testing.T) {
