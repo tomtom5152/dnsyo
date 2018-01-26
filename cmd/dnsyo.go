@@ -41,6 +41,14 @@ var rootCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		// perform a lookup
+		q := &Query{
+			Domain: args[0],
+		}
+		err := q.SetType(requestType)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
 		sl, err := ServersFromFile(resolverfile)
 		if err != nil {
 			log.Fatal(err.Error())
@@ -59,11 +67,6 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-		}
-
-		q := &Query{
-			Domain: args[0],
-			Type: requestType,
 		}
 
 		q.Results = sl.ExecuteQuery(q, numThreads)

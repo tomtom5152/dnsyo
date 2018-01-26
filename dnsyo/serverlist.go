@@ -12,7 +12,6 @@ import (
 	"strings"
 	"net/http"
 	"github.com/gocarina/gocsv"
-	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -162,7 +161,6 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 }
 
 func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
-	recordType := dns.StringToType[q.Type]
 	qr = make(QueryResults)
 
 	var wg sync.WaitGroup
@@ -176,7 +174,7 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 		go func(i int) {
 			defer wg.Done()
 			for s := range queue {
-				res, err := s.Lookup(q.Domain, recordType)
+				res, err := s.Lookup(q.Domain, q.Type)
 				ans := strings.Join(res, "\n")
 
 				r := new(Result)

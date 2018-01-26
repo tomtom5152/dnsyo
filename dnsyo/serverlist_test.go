@@ -4,6 +4,7 @@ import (
 	"testing"
 	. "github.com/smartystreets/goconvey/convey"
 	"os"
+	"github.com/miekg/dns"
 )
 
 const (
@@ -143,7 +144,7 @@ func TestServerList_Query(t *testing.T) {
 	Convey("perform a query that will work and we can compare the results", t, func() {
 		q := &Query{
 			Domain: "example.com",
-			Type: "A",
+			Type: dns.TypeA,
 		}
 		result := sl.ExecuteQuery(q, 10)
 		So(result, ShouldNotBeNil)

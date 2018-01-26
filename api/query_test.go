@@ -132,6 +132,12 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 	})
 
 	Convey("check request based errors", t, func() {
+		Convey("bad type", func() {
+			resp, err := http.Get(testUrl + "?t=foo")
+			So(err, ShouldBeNil)
+			So(resp.StatusCode, ShouldEqual, http.StatusBadRequest)
+		})
+
 		Convey("too many servers requested", func() {
 			resp, err := http.Get(testUrl + "?q=10")
 			So(err, ShouldBeNil)

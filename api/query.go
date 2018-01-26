@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"github.com/go-chi/chi"
 	. "github.com/tomtom5152/dnsyo/dnsyo"
-	"strings"
 	"strconv"
 	"github.com/go-chi/render"
 	"errors"
@@ -25,12 +24,14 @@ func (api *APIServer) QueryHandler(w http.ResponseWriter, r *http.Request) {
 	sl = api.Servers
 
 	// check if the user has specified a query type
+	var recordType = "A"
 	if t := r.FormValue("t"); t != "" {
-		q.Type = strings.ToUpper(t)
+		recordType = t
 	} else if t := r.FormValue("type"); t != "" {
-		q.Type = strings.ToUpper(t)
-	} else {
-		q.Type = "A"
+		recordType = t
+	}
+	if err = q.SetType(recordType); err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
 	}
 
 	// check if we have a country specified, apply the result
