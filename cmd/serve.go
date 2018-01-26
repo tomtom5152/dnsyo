@@ -19,6 +19,7 @@ import (
 	. "github.com/tomtom5152/dnsyo/dnsyo"
 	log "github.com/sirupsen/logrus"
 	"github.com/tomtom5152/dnsyo/api"
+	"os"
 )
 
 // serveCmd represents the serve command
@@ -45,8 +46,12 @@ var serveCmd = &cobra.Command{
 		// start the server
 		server := api.NewAPIServer(working)
 
-		log.Infof("Starting API server with %d nameservers", len(working))
-		server.Run(cmd.Flag("port").Value.String())
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = cmd.Flag("port").Value.String()
+		}
+		log.Infof("Starting API server with %d nameservers on port %s", len(working), port)
+		server.Run(port)
 	},
 }
 
