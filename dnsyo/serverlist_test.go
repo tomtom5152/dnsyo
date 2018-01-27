@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	testYaml = "../config/test-resolver-list.yml"
-	testCsvUrl = "https://public-dns.info/nameserver/de.csv" // german servers a relatively limited in number but consistent
-	testCsvMinCount = 400 // less than the actual number due to reliability tests
-	tmpYamlDump = ".dump-test.yml"
+	testYaml        = "../config/test-resolver-list.yml"
+	testCsvURL      = "https://public-dns.info/nameserver/de.csv" // german servers a relatively limited in number but consistent
+	testCsvMinCount = 400                                         // less than the actual number due to reliability tests
+	tmpYamlDump     = ".dump-test.yml"
 )
 
 func TestServerListFromFile(t *testing.T) {
@@ -22,9 +22,9 @@ func TestServerListFromFile(t *testing.T) {
 
 		Convey("check a few common results are in there", func() {
 			googleA := Server{
-				Ip:       "8.8.8.8",
-				Country:  "US",
-				Name:  "google-public-dns-a.google.com",
+				IP:      "8.8.8.8",
+				Country: "US",
+				Name:    "google-public-dns-a.google.com",
 			}
 
 			So(sl, ShouldContain, googleA)
@@ -32,9 +32,9 @@ func TestServerListFromFile(t *testing.T) {
 
 		Convey("all items are in the yaml, there aren't any fakes", func() {
 			l3 := Server{
-				Country:  "GB",
-				Ip:       "193.240.163.34",
-				Name:  "193.240.163.34",
+				Country: "GB",
+				IP:      "193.240.163.34",
+				Name:    "193.240.163.34",
 			}
 
 			So(sl, ShouldNotContain, l3)
@@ -44,20 +44,20 @@ func TestServerListFromFile(t *testing.T) {
 
 func TestServersFromCSVURL(t *testing.T) {
 	dnswatch1 := Server{
-		Ip: "84.200.69.80",
-		Name: "resolver1.ihgip.net.",
+		IP:      "84.200.69.80",
+		Name:    "resolver1.ihgip.net.",
 		Country: "DE",
 	}
 
 	// select a bad server from the list to use as our bad server
 	badServer := Server{
-		Ip: "148.251.43.199",
-		Name: "static.199.43.251.148.clients.your-server.de.",
+		IP:      "148.251.43.199",
+		Name:    "static.199.43.251.148.clients.your-server.de.",
 		Country: "DE",
 	}
 
 	Convey("loading from CSV provides us with a populated list of a reasonable size", t, func() {
-		sl, err := ServersFromCSVURL(testCsvUrl)
+		sl, err := ServersFromCSVURL(testCsvURL)
 		So(err, ShouldBeNil)
 		So(len(sl), ShouldBeGreaterThan, testCsvMinCount)
 		So(sl, ShouldContain, dnswatch1)
@@ -101,9 +101,9 @@ func TestServerList_FilterCountry(t *testing.T) {
 
 		Convey("that should be the postec entry", func() {
 			s := Server{
-				Ip:       "128.243.103.175",
-				Country:  "GB",
-				Name:  "!postec.nottingham.ac.uk",
+				IP:      "128.243.103.175",
+				Country: "GB",
+				Name:    "!postec.nottingham.ac.uk",
 			}
 
 			So(gb[0], ShouldResemble, s)

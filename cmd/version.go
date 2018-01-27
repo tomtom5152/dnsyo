@@ -5,13 +5,14 @@ import (
 	"runtime"
 )
 
-type VersionInfo struct {
+type versionInfo struct {
 	Version    string
 	BuildDate  string
 	CommitHash string
 }
 
-var CurrentVersion VersionInfo
+// CurrentVersion is the instance of versionInfo used by main() to transfer build time variables into the cobra app
+var CurrentVersion versionInfo
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{

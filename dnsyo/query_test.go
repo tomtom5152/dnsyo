@@ -8,10 +8,10 @@ import (
 
 func TestQuery_ToTextSummary(t *testing.T) {
 	s1 := Server{
-		Ip: "127.0.0.1",
+		IP: "127.0.0.1",
 	}
 	s2 := Server{
-		Ip: "127.0.0.2",
+		IP: "127.0.0.2",
 	}
 	q := &Query{
 		Domain: "example.test",

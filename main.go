@@ -9,10 +9,9 @@ var (
 )
 
 func main() {
-	cmd.CurrentVersion = cmd.VersionInfo{
-		Version:    version,
-		BuildDate:  buildDate,
-		CommitHash: commitHash,
-	}
+	cmd.CurrentVersion.Version = version
+	cmd.CurrentVersion.BuildDate = buildDate
+	cmd.CurrentVersion.CommitHash = commitHash
+
 	cmd.Execute()
 }

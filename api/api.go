@@ -1,19 +1,20 @@
 package api
 
 import (
-	. "github.com/tomtom5152/dnsyo/dnsyo"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 	"net/http"
 )
 
-type APIServer struct {
-	Servers ServerList
+// Server is responsible for management of the working ServerList and storage of the router
+type Server struct {
+	Servers dnsyo.ServerList
 	r chi.Router
 }
 
-type ErrResponse struct {
+type errResponse struct {
 	Err            error `json:"-"` // low-level runtime error
 	HTTPStatusCode int   `json:"-"` // http response status code
 
@@ -22,14 +23,14 @@ type ErrResponse struct {
 	ErrorText  string `json:"error,omitempty"` // application-level error message, for debugging
 }
 
-func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (e *errResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	render.Status(r, e.HTTPStatusCode)
 	return nil
 }
 
-
-func ErrInvalidRequest(err error) render.Renderer {
-	return &ErrResponse{
+// errInvalidRequest produces a chi/render object representing an invalid request
+func errInvalidRequest(err error) render.Renderer {
+	return &errResponse{
 		Err:            err,
 		HTTPStatusCode: 400,
 		StatusText:     "Invalid request.",
@@ -37,8 +38,9 @@ func ErrInvalidRequest(err error) render.Renderer {
 	}
 }
 
-func ErrRender(err error) render.Renderer {
-	return &ErrResponse{
+// errRender produces a chi/render object representing an error whilst rendering
+func errRender(err error) render.Renderer {
+	return &errResponse{
 		Err:            err,
 		HTTPStatusCode: 422,
 		StatusText:     "Error rendering response.",
@@ -46,7 +48,8 @@ func ErrRender(err error) render.Renderer {
 	}
 }
 
-func NewAPIServer(servers ServerList) (api APIServer) {
+// NewAPIServer sets up the routes an produces a new Server instance with the router assigned.
+func NewAPIServer(servers dnsyo.ServerList) (api Server) {
 	api.Servers = servers
 	api.r = chi.NewRouter()
 
@@ -58,12 +61,13 @@ func NewAPIServer(servers ServerList) (api APIServer) {
 	api.r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	api.r.Route("/v1", func(r chi.Router) {
-		r.Get("/query/{domain:.*}", api.QueryHandler)
+		r.Get("/query/{domain:.*}", api.queryHandler)
 	})
 
 	return
 }
 
-func (api *APIServer) Run(port string) {
+// Run starts the Server on the given port. Port can should take the form :<port> or <ip>:<port>.
+func (api *Server) Run(port string) {
 	http.ListenAndServe(port, api.r)
 }

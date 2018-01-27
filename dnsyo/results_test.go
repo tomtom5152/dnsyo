@@ -12,7 +12,7 @@ func TestQueryResults_ToJson(t *testing.T) {
 	}
 
 	Convey("json is correct", t, func() {
-		json, err := qr.ToJson()
+		json, err := qr.ToJSON()
 		So(err, ShouldBeNil)
 		So(json, ShouldEqual, `{"error":{"Answer":"","Error":"TESTERR"},"localhost":{"Answer":"127.0.0.1"}}`)
 	})

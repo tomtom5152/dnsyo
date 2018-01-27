@@ -16,36 +16,15 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	. "github.com/tomtom5152/dnsyo/dnsyo"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	log "github.com/sirupsen/logrus"
-	"os"
 	"fmt"
 
 )
 
 var (
-	csvUrl string
+	csvURL string
 )
-
-func Update(source, target string) error {
-	toTest, err := ServersFromCSVURL(source)
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
-	fmt.Printf("Testing %d nameservers\n", len(toTest))
-	working := toTest.TestAll(numThreads)
-	err = working.DumpToFile(target)
-	if err != nil {
-		log.Error(err.Error())
-		return err
-	}
-
-	fmt.Printf("Updated server list, %d active, %d disabled\n", len(working), len(toTest)-len(working))
-
-	return nil
-}
 
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
@@ -54,10 +33,23 @@ var updateCmd = &cobra.Command{
 	Long: `Performs a test query on all of the configured name servers to see if they are working and saves the output
 to the list of active servers.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Update(csvUrl, resolverfile); err != nil {
-			os.Exit(1)
+		toTest, err := dnsyo.ServersFromCSVURL(csvURL)
+		if err != nil {
+			log.Fatal(err.Error())
+			return
 		}
-		os.Exit(0)
+
+		fmt.Printf("Testing %d nameservers\n", len(toTest))
+		working := toTest.TestAll(numThreads)
+		err = working.DumpToFile(resolverfile)
+		if err != nil {
+			log.Fatal(err.Error())
+			return
+		}
+
+		log.Info("Updated server list, %d active, %d disabled\n", len(working), len(toTest)-len(working))
+
+		return
 	},
 }
 
@@ -73,5 +65,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// updateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	updateCmd.Flags().StringVar(&csvUrl, "csvurl", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
+	updateCmd.Flags().StringVar(&csvURL, "csvurl", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
 }

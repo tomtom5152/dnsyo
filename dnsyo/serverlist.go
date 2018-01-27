@@ -3,7 +3,6 @@ package dnsyo
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"errors"
 	"net"
 	"time"
 	"fmt"
@@ -16,10 +15,11 @@ import (
 )
 
 const (
-	answerResult         = 4
-	reliabilityThreshold = 0.97
+	answerResult         = 4 // tab index for the result in a DNS response. Used to eliminate type and TTL etc.
+	reliabilityThreshold = 0.97 // minimum public-dns.info reliability threshold for a server to be loaded from csv
 )
 
+// representation of a nameserver in CSV from from public-dns.info
 type csvNameserver struct {
 	// IPAddress is the ipv4 address of the server
 	IPAddress string `csv:"ip"`
@@ -52,14 +52,10 @@ type csvNameserver struct {
 	CreatedAt time.Time `csv:"created_at"`
 }
 
+// ServerList is an alias for a slice of Server objects used for performing bulk actions on multiple threads
 type ServerList []Server
 
-type Results struct {
-	SuccessCount, ErrorCount int
-	Success                  map[string]int
-	Errors                   map[string]int
-}
-
+// ServersFromFile loads a ServerList from a YAML file. Will raise an error if the file cannot be opened or processed
 func ServersFromFile(filename string) (sl ServerList, err error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -74,6 +70,8 @@ func ServersFromFile(filename string) (sl ServerList, err error) {
 	return
 }
 
+// ServersFromCSVURL loads a ServerList from a CSV provided at a given URL.
+// Designed for use with public-info.dns
 func ServersFromCSVURL(url string) (sl ServerList, err error) {
 	csvFile, err := http.Get(url)
 	if err != nil {
@@ -106,7 +104,7 @@ func ServersFromCSVURL(url string) (sl ServerList, err error) {
 		}
 		if ns.Reliability >= reliabilityThreshold {
 			s := Server{
-				Ip:      ns.IPAddress,
+				IP:      ns.IPAddress,
 				Country: strings.ToUpper(ns.Country),
 				Name:    ns.Name,
 			}
@@ -117,6 +115,8 @@ func ServersFromCSVURL(url string) (sl ServerList, err error) {
 	return
 }
 
+// DumpToFile a the current server list to a YAML file.
+// Includes a commented header to identify the fact it is generated.
 func (sl *ServerList) DumpToFile(filename string) (err error) {
 	yml, err := yaml.Marshal(sl)
 	if err != nil {
@@ -129,6 +129,8 @@ func (sl *ServerList) DumpToFile(filename string) (err error) {
 	return
 }
 
+// FilterCountry filters the current server list by country and returns a new server list with the matching servers in it.
+// Returns an error if no servers were found.
 func (sl *ServerList) FilterCountry(country string) (fl ServerList, err error) {
 	for _, s := range *sl {
 		if s.Country == strings.ToUpper(country) {
@@ -137,17 +139,19 @@ func (sl *ServerList) FilterCountry(country string) (fl ServerList, err error) {
 	}
 
 	if len(fl) == 0 {
-		err = errors.New(fmt.Sprintf("no servers matching country %s were found", country))
+		err = fmt.Errorf("no servers matching country %s were found", country)
 	}
 
 	return
 }
 
+// NRandom returns n random servers from the current server list in a new list.
+// Will return an error if there are less than n servers in the current list.
 func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 	ql := *sl
 
 	if len(ql) < n {
-		return nil, errors.New(fmt.Sprintf("insufficient servers to populate list: %d of %d", len(ql), n))
+		return nil, fmt.Errorf("insufficient servers to populate list: %d of %d", len(ql), n)
 	}
 
 	rl = make(ServerList, n)
@@ -160,6 +164,8 @@ func (sl *ServerList) NRandom(n int) (rl ServerList, err error) {
 	return
 }
 
+// ExecuteQuery runs a Query object in a specified number of threads.
+// The returned QueryResult is not associated with the provided Query, however may be set by the caller.
 func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 	qr = make(QueryResults)
 
@@ -243,6 +249,7 @@ func (sl *ServerList) ExecuteQuery(q *Query, threads int) (qr QueryResults) {
 //	return
 //}
 
+// TestAll tests all the servers in the current list and returns a new list with only the workings ones.
 func (sl *ServerList) TestAll(threads int) (working ServerList) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex

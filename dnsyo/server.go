@@ -8,12 +8,17 @@ import (
 	"github.com/miekg/dns"
 )
 
+// Server contains information about a specific nameserver that can be queried
 type Server struct {
-	Ip      string
+	IP      string
 	Country string
 	Name    string
 }
 
+// Test checks that the server can be reached and is returning results for three common domains that should be
+// widely available.
+//
+// It does not verify that the results returned are correct and not being squatted.
 func (s *Server) Test() (ok bool, err error) {
 	tests := []dns.Question{
 		{dns.Fqdn("google.com"), dns.TypeA, dns.ClassINET},
@@ -21,7 +26,7 @@ func (s *Server) Test() (ok bool, err error) {
 		{dns.Fqdn("amazon.com"), dns.TypeA, dns.ClassINET},
 	}
 
-	addr := s.Ip + ":53"
+	addr := s.IP + ":53"
 	c := new(dns.Client)
 	var lastErr error
 
@@ -58,8 +63,12 @@ func (s *Server) Test() (ok bool, err error) {
 	return true, nil
 }
 
+// Lookup makes a request for a given domain name and record type to the current server IP on the standard port 53.
+//
+// Results are returned as either a slice of strings representing the IPs returned, or an error object with a simplified
+// error response.
 func (s *Server) Lookup(name string, recordType uint16) (results []string, err error) {
-	addr := s.Ip + ":53"
+	addr := s.IP + ":53"
 	c := new(dns.Client)
 
 	msg := new(dns.Msg)
@@ -109,9 +118,10 @@ func (s *Server) Lookup(name string, recordType uint16) (results []string, err e
 	return
 }
 
+// Returns either the current server name or the IP address if a name is not available.
 func (s *Server) String() (string) {
 	if s.Name != "" {
 		return s.Name
 	}
-	return s.Ip
+	return s.IP
 }

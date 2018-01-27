@@ -19,7 +19,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	. "github.com/tomtom5152/dnsyo/dnsyo"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -41,7 +41,7 @@ var rootCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		// perform a lookup
-		q := &Query{
+		q := &dnsyo.Query{
 			Domain: args[0],
 		}
 		err := q.SetType(requestType)
@@ -49,7 +49,7 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err.Error())
 		}
 
-		sl, err := ServersFromFile(resolverfile)
+		sl, err := dnsyo.ServersFromFile(resolverfile)
 		if err != nil {
 			log.Fatal(err.Error())
 			return

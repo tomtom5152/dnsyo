@@ -61,15 +61,25 @@ resulting in lookups being significantly quicker.
 
 ## Installation
 
-DNSYO requires [go dep](https://github.com/golang/dep) for dependency management.
-
-For basic installation run
-
-    go get github.com/tomtom5152/dnsyo
+It is strongly recommended that you use a released version.
+Release binaries are available on the [releases](https://github.com/tomtom5152/dnsyo/releases) page.
 
 When first installed you will need to run the update command to populate the resolver list.
 
     dnsyo update
+
+This will create a resolver file in the your current directory.
+To change the location of this file, use the `--resolversfile` flag.
+You must use this flag on all subsequent calls to `dnsyo`
+
+To compile from source, use:
+
+    go get github.com/tomtom5152/dnsyo
+
+DNSYO requires [go dep](https://github.com/golang/dep) for dependency management.
+Please install this according to their instructions and run
+
+    dep ensure
 
 ## Usage
 

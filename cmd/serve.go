@@ -16,7 +16,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	. "github.com/tomtom5152/dnsyo/dnsyo"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	log "github.com/sirupsen/logrus"
 	"github.com/tomtom5152/dnsyo/api"
 	"os"
@@ -27,15 +27,15 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the basic API Server",
 	Run: func(cmd *cobra.Command, args []string) {
-		var working ServerList
+		var working dnsyo.ServerList
 		if yml := cmd.Flag("resolverfile").Value.String(); yml != "" {
 			var err error
-			working, err = ServersFromFile(yml)
+			working, err = dnsyo.ServersFromFile(yml)
 			if err != nil {
 				log.Fatal(err)
 			}
 		} else {
-			toTest, err := ServersFromCSVURL(cmd.Flag("csvurl").Value.String())
+			toTest, err := dnsyo.ServersFromCSVURL(cmd.Flag("csvurl").Value.String())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -68,6 +68,6 @@ func init() {
 	// is called directly, e.g.:
 	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	serveCmd.Flags().StringP("port", "p", ":3000", "Port to bind to")
-	serveCmd.Flags().StringVar(&csvUrl, "csvurl", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
+	serveCmd.Flags().StringVar(&csvURL, "csvurl", "https://public-dns.info/nameservers.csv", "URL to fetch the list form")
 	serveCmd.Flags().String("resolverfile", "", "Local resolvers file to use")
 }

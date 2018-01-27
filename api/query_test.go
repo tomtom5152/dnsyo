@@ -2,7 +2,7 @@ package api
 
 import (
 	"testing"
-	. "github.com/tomtom5152/dnsyo/dnsyo"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http/httptest"
 	"net/http"
@@ -15,7 +15,7 @@ const (
 )
 
 func TestAPIServer_QueryHandler(t *testing.T) {
-	sl, _ := ServersFromFile(testYaml)
+	sl, _ := dnsyo.ServersFromFile(testYaml)
 	if len(sl) != 9 {
 		t.Error("incorred number of servers, double check test list")
 	}
@@ -25,10 +25,10 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 	server := httptest.NewServer(api.r)
 	defer server.Close()
 
-	testUrl := server.URL + "/v1/query/example.com"
+	testURL := server.URL + "/v1/query/example.com"
 
 	Convey("make a test query to example.com and check the result", t, func() {
-		resp, err := http.Get(testUrl + "?q=9")
+		resp, err := http.Get(testURL + "?q=9")
 		So(err, ShouldBeNil)
 		So(resp.StatusCode, ShouldEqual, http.StatusOK)
 
@@ -52,7 +52,7 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 	Convey("check query string params", t, func() {
 		Convey("number of servers", func() {
 			Convey("short form", func() {
-				resp, err := http.Get(testUrl + "?q=1")
+				resp, err := http.Get(testURL + "?q=1")
 				So(err, ShouldBeNil)
 				So(resp.StatusCode, ShouldEqual, http.StatusOK)
 
@@ -64,7 +64,7 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 			})
 
 			Convey("long form", func() {
-				resp, err := http.Get(testUrl + "?servers=3")
+				resp, err := http.Get(testURL + "?servers=3")
 				So(err, ShouldBeNil)
 				So(resp.StatusCode, ShouldEqual, http.StatusOK)
 
@@ -78,7 +78,7 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 
 		Convey("country", func() {
 			Convey("short form", func() {
-				resp, err := http.Get(testUrl + "?c=GB")
+				resp, err := http.Get(testURL + "?c=GB")
 				So(err, ShouldBeNil)
 				So(resp.StatusCode, ShouldEqual, http.StatusOK)
 
@@ -91,7 +91,7 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 			})
 
 			Convey("long form", func() {
-				resp, err := http.Get(testUrl + "?country=GB")
+				resp, err := http.Get(testURL + "?country=GB")
 				So(err, ShouldBeNil)
 				So(resp.StatusCode, ShouldEqual, http.StatusOK)
 
@@ -133,25 +133,25 @@ func TestAPIServer_QueryHandler(t *testing.T) {
 
 	Convey("check request based errors", t, func() {
 		Convey("bad type", func() {
-			resp, err := http.Get(testUrl + "?t=foo")
+			resp, err := http.Get(testURL + "?t=foo")
 			So(err, ShouldBeNil)
 			So(resp.StatusCode, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("too many servers requested", func() {
-			resp, err := http.Get(testUrl + "?q=10")
+			resp, err := http.Get(testURL + "?q=10")
 			So(err, ShouldBeNil)
 			So(resp.StatusCode, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("more than the maximum number of servers", func() {
-			resp, err := http.Get(testUrl + "?q=1000")
+			resp, err := http.Get(testURL + "?q=1000")
 			So(err, ShouldBeNil)
 			So(resp.StatusCode, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("invalid country", func() {
-			resp, err := http.Get(testUrl + "?c=FOO")
+			resp, err := http.Get(testURL + "?c=FOO")
 			So(err, ShouldBeNil)
 			So(resp.StatusCode, ShouldEqual, http.StatusBadRequest)
 		})

@@ -3,7 +3,6 @@ package dnsyo
 import (
 	"fmt"
 	"github.com/miekg/dns"
-	"errors"
 	"strings"
 )
 
@@ -13,12 +12,14 @@ type resultSummary struct {
 	Errors                   map[string]int
 }
 
+// Query represents a lookup of Type for a given Domain and stores the Results for later processing
 type Query struct {
 	Results QueryResults
 	Domain  string
 	Type    uint16
 }
 
+// ToTextSummary prints a human readable output of the current query's results for use in the CLI.
 func (q *Query) ToTextSummary() (text string) {
 	var rs resultSummary
 	rs.Answers = make(map[string]int)
@@ -58,16 +59,19 @@ Here are the results;`, len(q.Results), q.GetType(), q.Domain, rs.SuccessCount, 
 	return text
 }
 
+// SetType converts a string representation of a query type to the internal uint16. This is then set on the current Query.
+// An error is returned if the type cannot be found in the miekg/dns library.
 func (q *Query) SetType(recordType string) error {
 	recordType = strings.ToUpper(recordType)
 	t, ok := dns.StringToType[recordType]
 	if !ok {
-		return errors.New(fmt.Sprintf("unable to use record type %s", recordType))
+		return fmt.Errorf("unable to use record type %s", recordType)
 	}
 	q.Type = t
 	return nil
 }
 
+// GetType looks up the current Query's uint16 Type and returns the string representation of it from the miekg/dns library.
 func (q *Query) GetType() string {
 	if q.Type != 0 {
 		return dns.TypeToString[q.Type]
