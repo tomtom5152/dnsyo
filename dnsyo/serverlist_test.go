@@ -1,10 +1,10 @@
 package dnsyo
 
 import (
-	"testing"
+	"github.com/miekg/dns"
 	. "github.com/smartystreets/goconvey/convey"
 	"os"
-	"github.com/miekg/dns"
+	"testing"
 )
 
 const (
@@ -144,7 +144,7 @@ func TestServerList_Query(t *testing.T) {
 	Convey("perform a query that will work and we can compare the results", t, func() {
 		q := &Query{
 			Domain: "example.com",
-			Type: dns.TypeA,
+			Type:   dns.TypeA,
 		}
 		result := sl.ExecuteQuery(q, 10)
 		So(result, ShouldNotBeNil)
@@ -153,7 +153,7 @@ func TestServerList_Query(t *testing.T) {
 		So(len(result), ShouldEqual, len(sl))
 
 		// check the result we have is correct
-		So(result[sl[8].String()], ShouldResemble, &Result{Error:"TIMEOUT"})
+		So(result[sl[8].String()], ShouldResemble, &Result{Error: "TIMEOUT"})
 	})
 }
 

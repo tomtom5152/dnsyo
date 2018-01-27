@@ -1,21 +1,21 @@
 package dnsyo
 
 import (
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"net"
-	"time"
 	"fmt"
-	"math/rand"
-	"sync"
-	"strings"
-	"net/http"
 	"github.com/gocarina/gocsv"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"math/rand"
+	"net"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
 )
 
 const (
-	answerResult         = 4 // tab index for the result in a DNS response. Used to eliminate type and TTL etc.
+	answerResult         = 4    // tab index for the result in a DNS response. Used to eliminate type and TTL etc.
 	reliabilityThreshold = 0.97 // minimum public-dns.info reliability threshold for a server to be loaded from csv
 )
 

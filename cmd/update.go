@@ -15,11 +15,10 @@
 package cmd
 
 import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/tomtom5152/dnsyo/dnsyo"
-	log "github.com/sirupsen/logrus"
-	"fmt"
-
 )
 
 var (

@@ -1,9 +1,9 @@
 package dnsyo
 
 import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/miekg/dns"
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 func TestServer_Test(t *testing.T) {
@@ -94,7 +94,7 @@ func TestServer_Lookup(t *testing.T) {
 		})
 	})
 
-	Convey("localhost should refuse the connection", t, func () {
+	Convey("localhost should refuse the connection", t, func() {
 		s := Server{
 			IP:      "127.0.0.1",
 			Country: "NA",

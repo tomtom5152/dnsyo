@@ -1,18 +1,18 @@
 package api
 
 import (
-	"net/http"
-	"github.com/go-chi/chi"
-	"github.com/tomtom5152/dnsyo/dnsyo"
-	"strconv"
-	"github.com/go-chi/render"
 	"errors"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/render"
+	"github.com/tomtom5152/dnsyo/dnsyo"
+	"net/http"
+	"strconv"
 )
 
 const (
 	apiQueryThreads = 200
-	maxServers = 500
-	defaultServers = 200
+	maxServers      = 500
+	defaultServers  = 200
 )
 
 func (api *Server) queryHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,11 +44,10 @@ func (api *Server) queryHandler(w http.ResponseWriter, r *http.Request) {
 	if country != "" {
 		sl, err = sl.FilterCountry(country)
 		if err != nil {
-			render.Render(w,r, errInvalidRequest(err))
+			render.Render(w, r, errInvalidRequest(err))
 			return
 		}
 	}
-
 
 	// check if we have a number of servers specified, bound and apply the result
 	numServers := 0

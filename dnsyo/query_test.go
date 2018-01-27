@@ -1,9 +1,9 @@
 package dnsyo
 
 import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/miekg/dns"
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 func TestQuery_ToTextSummary(t *testing.T) {
@@ -15,7 +15,7 @@ func TestQuery_ToTextSummary(t *testing.T) {
 	}
 	q := &Query{
 		Domain: "example.test",
-		Type: dns.TypeA,
+		Type:   dns.TypeA,
 	}
 
 	Convey("top block is formatted correctly", t, func() {

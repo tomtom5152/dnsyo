@@ -2,10 +2,10 @@ package dnsyo
 
 import (
 	"errors"
-	"net"
-	"syscall"
-	"strings"
 	"github.com/miekg/dns"
+	"net"
+	"strings"
+	"syscall"
 )
 
 // Server contains information about a specific nameserver that can be queried
@@ -119,7 +119,7 @@ func (s *Server) Lookup(name string, recordType uint16) (results []string, err e
 }
 
 // Returns either the current server name or the IP address if a name is not available.
-func (s *Server) String() (string) {
+func (s *Server) String() string {
 	if s.Name != "" {
 		return s.Name
 	}

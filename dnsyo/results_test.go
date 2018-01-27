@@ -1,8 +1,8 @@
 package dnsyo
 
 import (
-	"testing"
 	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 func TestQueryResults_ToJson(t *testing.T) {

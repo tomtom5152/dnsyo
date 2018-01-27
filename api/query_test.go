@@ -1,13 +1,13 @@
 package api
 
 import (
-	"testing"
-	"github.com/tomtom5152/dnsyo/dnsyo"
 	. "github.com/smartystreets/goconvey/convey"
-	"net/http/httptest"
-	"net/http"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"strings"
+	"testing"
 )
 
 const (

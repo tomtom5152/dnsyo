@@ -1,17 +1,17 @@
 package api
 
 import (
-	"github.com/tomtom5152/dnsyo/dnsyo"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
+	"github.com/tomtom5152/dnsyo/dnsyo"
 	"net/http"
 )
 
 // Server is responsible for management of the working ServerList and storage of the router
 type Server struct {
 	Servers dnsyo.ServerList
-	r chi.Router
+	r       chi.Router
 }
 
 type errResponse struct {
