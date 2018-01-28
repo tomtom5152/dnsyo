@@ -20,6 +20,7 @@ import (
 	"github.com/tomtom5152/dnsyo/api"
 	"github.com/tomtom5152/dnsyo/dnsyo"
 	"os"
+	"strings"
 )
 
 // serveCmd represents the serve command
@@ -50,6 +51,11 @@ var serveCmd = &cobra.Command{
 		if port == "" {
 			port = cmd.Flag("port").Value.String()
 		}
+		// check if we just have the port number
+		if !strings.Contains(port, ":") {
+			port = ":" + port
+		}
+
 		log.Infof("Starting API server with %d nameservers on port %s", len(working), port)
 		server.Run(port)
 	},
